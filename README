@@ -2,4 +2,22 @@ This is a small database project I'm trying to write an automated personnel mana
 the Star Trek Simulation Forum (http://stsf.net). There's no guarantee it will be used, but I'm doing it for fun,
 and as a demo of an XML native database/NoSQL.
 
+System requirements:
+GNU make (any recent version)
+Python 2.6 or above (for makedb.py)
+Java 1.6 or above
+
+To install:
+$ cp personnel/modules/settings.template.xml personnel/modules/settings.xml
+
+Use your favorite editor to edit personnel/modules/settings.xml
+ 
+$ make install
+
+To run:
+
+/usr/local/personnel/bin/startup.sh
+
+or set up the wrapper...
+
 -Efraim <efraim.feinstein@gmail.com> 

@@ -1,0 +1,12 @@
+/\..*
+Makefile
+~$
+\.zip$
+\.swp$
+\.bak$
+\.sh$
+^.*tmp.*$
+^.*test.*$
+debug.*$
+setup
+settings\.template\.xqm

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collection xmlns="http://exist-db.org/collection-config/1.0">
+    <index 
+      xmlns:p="http://stsf.net/personnel/players"
+      xmlns:s="http://stsf.net/personnel/ships"
+      xmlns:m="http://stsf.net/personnel/members">
+      <!-- player identifier -->
+      <create qname="p:id" type="xs:integer"/>
+      <!-- player and character name and board name -->
+      <create qname="p:name" type="xs:string"/>
+      <create qname="p:boardName" type="xs:string"/>
+      <!-- position identifier (roster) -->
+      <create qname="s:id" type="xs:integer"/>
+      <!-- ship name -->
+      <create qname="s:name" type="xs:string"/>
+      <!-- members database -->
+      <create qname="m:number" type="xs:integer"/>
+      <create qname="m:name" type="xs:string"/>
+    </index>
+</collection>

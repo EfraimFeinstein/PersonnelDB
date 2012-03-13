@@ -1,0 +1,29 @@
+default namespace = "http://stsf.net/personnel/players"
+
+start = Player
+
+# at some point, the email type may be extended to do better validation
+Email = element email { text }
+
+Application = element application {
+  element ship { xsd:string { minLength="1" } },
+  element position { xsd:integer }
+}
+
+Character = element character {
+  element id { xsd:integer },
+  element name { xsd:string { minLength="1" } },
+  element boardName { xsd:string { minLength="1" } },
+  Email,
+  Application*
+}
+
+Player = element player { 
+  element id { xsd:integer },
+  element name { text },
+  element boardName { text },
+  Email,
+  element rights { ("Administrator" | "GM" | "Normal") },
+  Character*
+}
+
