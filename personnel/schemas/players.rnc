@@ -7,7 +7,22 @@ Email = element email { text }
 
 Application = element application {
   element ship { xsd:string { minLength="1" } },
-  element position { xsd:integer }
+  element position { xsd:integer },
+  # the cascade status means that the application 
+  # will only activate if the previous application is rejected
+  # if it's accepted, it will be cleared 
+  element status { ("Active", "Approved", "Rejected", "Cascade") },
+  # timestamp on the application
+  element applyDate { xsd:dateTime },
+  # timestamp on the decision
+  element decisionDate { xsd:dateTime }?  
+}
+
+# when a player goes on extended leave,
+# it is recorded here 
+Leave = element leave {
+  element startDate { xsd:dateTime },
+  element endDate { xsd:dateTime }?
 }
 
 Character = element character {
@@ -15,7 +30,9 @@ Character = element character {
   element name { xsd:string { minLength="1" } },
   element boardName { xsd:string { minLength="1" } },
   Email,
-  Application*
+  element history {
+  	(Application|Leave)*
+  }	
 }
 
 Player = element player { 
@@ -23,7 +40,6 @@ Player = element player {
   element name { text },
   element boardName { text },
   Email,
-  element rights { ("Administrator" | "GM" | "Normal") },
   Character*
 }
 
