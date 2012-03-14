@@ -15,7 +15,14 @@ let $ext-base := $settings:absolute-url-base
 let $authenticated := session:get-attribute("authenticated")
 let $null := util:log-system-out(("controller: path=", $exist:path, " resource=", $exist:resource))
 return
-  if (not($authenticated) and not($exist:resource="login"))
+  if (starts-with($exist:path, "/queries") or starts-with($exist:path, "/resources"))
+  then
+    element exist:dispatch {
+      element exist:forward {
+        attribute url { concat($db-base, $exist:path) }
+      }
+    }
+  else if (not($authenticated) and not($exist:resource="login"))
   then
     element exist:dispatch {
       element exist:redirect {
@@ -23,13 +30,6 @@ return
       }
     }
   (: from here on, we are authenticated :)
-  else if (starts-with($exist:path, "/queries"))
-  then
-    element exist:dispatch {
-      element exist:forward {
-        attribute url { concat($db-base, $exist:path) }
-      }
-    }
   else
     element exist:dispatch {
       switch ($exist:resource)
