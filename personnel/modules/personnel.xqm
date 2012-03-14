@@ -12,6 +12,7 @@ import module namespace mem="http://stsf.net/xquery/members"
 import module namespace pl="http://stsf.net/xquery/players"
   at "players.xqm";
 
+declare namespace html="http://www.w3.org/1999/xhtml";
 declare namespace p="http://stsf.net/personnel/players";
 declare namespace error="http://stsf.net/errors";
 
@@ -93,13 +94,21 @@ declare function prs:setup(
             element p:id { $settings:admin-numbers[$n] },
             element p:name { $admin-user },
             element p:boardName { $admin-user },
-            element p:email { $settings:admin-emails[$n] },
-            element p:rights { "Administrator" }
+            element p:email { $settings:admin-emails[$n] }
           }
         )
+      let $access-level := 
+        pl:set-access-level($admin-user, ("player", "gamemaster", "administrator"))
       where not($edited)
       return 
-        error(xs:QName("error:SETUP"), "Cannot set up administrative players!")
+        error(xs:QName("error:SETUP"), "Cannot set up administrative players!"),
+      (: set permissions and ownership of the data collections :)
+      for $collection in ("/personnel/data/ships", "/personnel/data/players")
+      return (
+        sm:chgrp(xs:anyURI($collection), "gamemaster"),
+        sm:chmod(xs:anyURI($collection), "rwxrwxr-x"),
+        sm:add-group-ace(xs:anyURI($collection), "administrator", true(), "w")
+      )
     ))
 };
 
