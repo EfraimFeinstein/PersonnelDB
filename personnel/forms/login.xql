@@ -5,7 +5,9 @@ xquery version "3.0";
  :)
 import module namespace site="http://stsf.net/xquery/site"
   at "/db/personnel/modules/site.xqm";
-
+import module namespace settings="http://stsf.net/xquery/settings"
+  at "/db/personnel/modules/settings.xqm";
+  
 declare default element namespace "http://www.w3.org/1999/xhtml";
 declare namespace ev="http://www.w3.org/2001/xml-events";
 declare namespace xf="http://www.w3.org/2002/xforms";
@@ -22,13 +24,13 @@ site:form(
     <xf:instance id="login-result"/>
     <xf:submission 
       id="login-submit"
-      resource="/exist/rest/db/personnel/queries/login.xql"
+      resource="{$settings:absolute-url-base}/queries/login.xql"
       method="post"
       ref="instance('login-instance')"
       replace="none"
       >
       <xf:action ev:event="xforms-submit-done">
-        <xf:message>Done (TODO:load players page)</xf:message>
+        <xf:load resource="{$settings:absolute-url-base}/players"/>
       </xf:action>
       <xf:action ev:event="xforms-submit-error">
         <xf:message>Login error: 
