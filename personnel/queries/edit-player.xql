@@ -20,5 +20,5 @@ declare namespace p="http://stsf.net/personnel/players";
 declare namespace error="http://stsf.net/error";
 
 let $data := request:get-data()/p:player 
-return
-  pl:edit-player($data)
+let $success := pl:edit-player($data)
+return $data

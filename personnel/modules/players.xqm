@@ -73,6 +73,7 @@ declare function pl:can-edit-player(
       (: can edit the player :)
       sm:has-access($player-xml, "w") and
       (
+        util:log-system-out((xmldb:get-current-user(), " has access: ", sm:has-access($player-xml, "w"))),
         (: only administrators can:
          : change player id numbers and board names
          : or use this to add characters
@@ -120,7 +121,8 @@ declare function pl:add-character(
             element p:id { $character-number },
             ($new-character/p:name, element p:name { $boardName })[1],
             $new-character/p:boardName,
-            ($new-character/p:email, collection($pl:player-collection)//p:player[p:id=$player-id]/p:email)[1]
+            ($new-character/p:email, collection($pl:player-collection)//p:player[p:id=$player-id]/p:email)[1],
+            element p:history { () } 
           }
         return (
           update insert $char into collection($pl:player-collection)//p:player[p:id=$player-id], 
