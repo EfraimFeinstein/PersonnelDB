@@ -22,5 +22,21 @@ declare variable $settings:admin-numbers := (Insert, Numbers, Here);
 (: email addresses for first administrative users :)
 declare variable $settings:admin-emails := ("Insert", "Email Addresses", "Here");
 
+(: update interval for full board name refresh
+ : full refresh will hit stsf.net a lot!
+ : default: 7 days
+ : Format: P[days]DT[hours]H[minutes]M[seconds]S
+ :)
+declare variable $settings:boardnames-refresh-interval :=
+   xs:dayTimeDuration("P7DT0H0M0S");
+
+(: update interval for partial board name refresh
+ : to get new members
+ : default: 1 day
+ : Format: P[days]DT[hours]H[minutes]M[seconds]S
+ :)
+declare variable $settings:boardnames-update-interval :=
+   xs:dayTimeDuration("P1DT0H0M0S");
+
 (: Database base URL. It is safe to leave this as is. :)
 declare variable $settings:absolute-url-base := "/exist/apps/personnel";

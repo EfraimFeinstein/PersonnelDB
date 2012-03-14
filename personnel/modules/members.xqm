@@ -102,40 +102,76 @@ declare function mem:refresh-board-name-db(
   )
 };
 
-(: refresh the board name database. do not do this too often :)
+declare function mem:refresh-board-name-db(
+  $start as xs:integer
+  ) {
+  system:as-user("admin", $settings:admin-password,
+    mem:refresh-board-name-db($start, ())
+  )
+};
+
+(: update only new players in the board name db :)
+declare function mem:update-board-name-db(
+  ) {
+  system:as-user("admin", $settings:admin-password,
+    mem:refresh-board-name-db(
+      (max(doc($mem:board-db-uri)//m:number) + 1, 1)[1], ())
+  )
+};
+
 declare function mem:refresh-board-name-db(
   $start as xs:integer,
   $end as xs:integer?
   ) {
+  system:as-user("admin", $settings:admin-password, 
+    local:refresh-board-name-db($start, $end, 10, 0)
+  )
+};
+
+(: refresh the board name database. do not do this too often :)
+declare function local:refresh-board-name-db(
+  $start as xs:integer,
+  $end as xs:integer?,
+  $max-errors as xs:integer,
+  $n-errors as xs:integer
+  ) {
   let $return :=
     http:send-request(
       <http:request 
-        href="http://stsf.net/forums.php?showuser={$start}" method="get"
+        href="http://stsf.net/forums/index.php?showuser={$start}" method="get"
           follow-redirect="true"
           >
       </http:request>
     )
-  let $this-member := doc($mem:member-db-uri)//m:boardname[m:number=$this-member]
-  where ($return/@status = "404" or $start = $end)
-  return (
-    let $boardname := $return//html:span[@class="fn nickname"]/string()
-    return
-      if (exists($this-member) and $this-member/m:name != $boardname)
-      then 
-        update value $this-member/m:name with $boardname 
-      else
-        update insert element m:boardname {
-          element m:number { $start },
-          element m:name { $boardname }
-        } into doc($mem:member-db-uri)/*,
-    mem:refresh-board-name-db($start + 1, $end)
-  )
+  let $this-member := doc($mem:board-db-uri)//m:boardname[m:number=$start]
+  let $next-errors := ( 
+    if ($return/@status = "200")
+    then (0,
+      let $boardname := $return//html:span[@class="fn nickname"]/string()
+      return
+        if (exists($this-member))
+        then 
+          if ($this-member/m:name = $boardname)
+          then ( (: nothing to do... :) )
+          else update value $this-member/m:name with $boardname 
+        else
+          update insert element m:boardname {
+            element m:number { $start },
+            element m:name { $boardname }
+          } into doc($mem:board-db-uri)/*
+    )
+    else $n-errors + 1)
+  return 
+    if ($start = $end or $next-errors >= $max-errors)
+    then ()
+    else
+      local:refresh-board-name-db($start + 1, $end, $max-errors, $next-errors)
 };
 
 declare function mem:member-number-by-board-name(
   $boardName as xs:string
   ) as xs:integer? {
-  doc($mem:member-db-uri)//m:boardname[m:name=$boardName]/m:number
+  doc($mem:board-db-uri)//m:boardname[m:name=$boardName]/m:number
 };
 
 declare function mem:login-member(
