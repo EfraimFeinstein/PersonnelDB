@@ -8,7 +8,9 @@ module namespace site="http://stsf.net/xquery/site";
 
 import module namespace prs="http://stsf.net/xquery/personnel"
   at "personnel.xqm";
-
+import module namespace settings="http://stsf.net/xquery/settings"
+  at "settings.xqm";
+  
 declare default element namespace "http://www.w3.org/1999/xhtml";
 declare namespace ev="http://www.w3.org/2001/xml-events";
 declare namespace xf="http://www.w3.org/2002/xforms";
@@ -94,7 +96,7 @@ declare function site:form(
 			$css,
 			$head-content,
       (: favicon :)
-      <link rel="shortcut icon" href="/personnel/resources/favicon.ico"/>,
+      <link rel="shortcut icon" href="{$settings:absolute-url-base}/resources/favicon.ico"/>,
 			$model
 			}
 		</head>
@@ -130,7 +132,7 @@ declare function site:form(
 declare function site:css() 
 	as element()* {
 	<link type="text/css" rel="stylesheet" 
-	  href="/personnel/resources/site.css"/>
+	  href="{$settings:absolute-url-base}/resources/site.css"/>
 };
 
 (:~ site-wide header :)
@@ -145,7 +147,7 @@ declare function site:header()
 declare function site:_sidebar-logo(
 	) as element()+ {
 	<div id="logo-div">
-		<img id="logo" src="/resources/stsf.png" alt="STSF Logo"/>
+		<img id="logo" src="{$settings:absolute-url-base}/resources/stsf.png" alt="STSF Logo"/>
 	</div>
 }; 
 
@@ -155,6 +157,8 @@ declare function site:sidebar()
   site:_sidebar-logo(),
   let $logged-in := session:get-attribute("authenticated")
   let $member-number := session:get-attribute("member-number")
+  let $is-gm := prs:is-game-master()
+  let $is-admin := prs:is-administrator()
   return (
     <nav>
       { 
@@ -167,13 +171,14 @@ declare function site:sidebar()
           <a href="login">Login</a>
       }
     </nav>,
-    if (prs:is-game-master())
+    if ($is-gm)
     then
       <nav>
+        <a href="players?player-id=new">Add (graduate) a player</a>
         <a href="ships">Administrate ships</a>
       </nav>
     else (),
-    if (prs:is-administrator())
+    if ($is-admin)
     then
       <nav>
         <a href="players">Administrate players</a>
