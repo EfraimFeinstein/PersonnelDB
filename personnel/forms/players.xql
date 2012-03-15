@@ -9,6 +9,8 @@ xquery version "3.0";
  : Copyright 2012 Efraim Feinstein <efraim.feinstein@gmail.com>
  : Licensed under the GNU Lesser General Public License
  :)
+import module namespace prs="http://stsf.net/xquery/personnel"
+  at "/db/personnel/modules/personnel.xqm";
 import module namespace site="http://stsf.net/xquery/site"
   at "/db/personnel/modules/site.xqm";
 import module namespace settings="http://stsf.net/xquery/settings"
@@ -22,7 +24,9 @@ declare namespace p="http://stsf.net/personnel/players";
 
 let $member-number := session:get-attribute("member-number")
 let $player-id := request:get-parameter("player-id", $member-number)
-let $new := not($player-id) or string($player-id) = "new" 
+let $new := not($player-id) or string($player-id) = "new"
+let $is-gm := prs:is-game-master()
+let $is-admin := prs:is-administrator() 
 return
   site:form(
     <xf:model>
@@ -37,6 +41,15 @@ return
         else
           attribute src { concat($settings:absolute-url-base, "/queries/get-player.xql?player-id=", $player-id) }
       }</xf:instance>
+      <xf:instance id="new-character-instance">
+        <p:character>
+          <p:name/>
+          <p:boardName/>
+          <p:password/>
+          <p:email/>
+        </p:character>
+      </xf:instance>
+      <xf:instance id="new-character-result"/>
       <xf:instance id="player-result"/>
       <xf:submission 
         id="player-submit"
@@ -56,7 +69,7 @@ return
             then "added"
             else "edited"
           } successfully.</xf:message>
-          { (: TODO: :)
+          {
             if ($new)
             then
               <xf:load>
@@ -69,6 +82,28 @@ return
           <xf:message>Error: 
           <xf:output value="event('response-body')"/></xf:message>
         </xf:action>
+      </xf:submission>      
+      <xf:submission 
+        id="add-character-submit"
+        resource="{$settings:absolute-url-base}/queries/add-character.xql?player-id={$member-number}"
+        method="post"
+        ref="instance('new-character-instance')"
+        replace="instance"
+        instance="new-character-result"
+        >
+        <xf:action ev:event="xforms-submit-done">
+          <xf:message>Character added successfully.</xf:message>
+          <xf:setvalue ref="instance('new-character-instance')/*" value=""/>
+          <xf:insert 
+            nodeset="instance('player-instance')/*"
+            at="last()"
+            origin="instance('new-character-result')"
+            />
+        </xf:action>
+        <xf:action ev:event="xforms-submit-error">
+          <xf:message>Error: 
+          <xf:output value="event('response-body')"/></xf:message>
+        </xf:action>
       </xf:submission>
     </xf:model>,
     <title>{
@@ -76,6 +111,7 @@ return
       then "Add new player"
       else "Edit player"
     }</title>,
+    (
     <xf:group class="player-editor" ref="instance('player-instance')">
       <xf:output ref="p:id">
         <xf:label>Member number: </xf:label>
@@ -97,5 +133,50 @@ return
         }</xf:label>
         <xf:send ev:event="DOMActivate" submission="player-submit"/>
       </xf:trigger>
-    </xf:group>
+    </xf:group>,
+    if ($new)
+    then ()
+    else (
+      <h2>My characters</h2>,
+      <xf:group class="new-character-editor" ref="instance('new-character-instance')">
+        <xf:label>Add a new character:</xf:label>
+        <xf:input ref="p:name">
+          <xf:label>Name: </xf:label>
+        </xf:input>
+        <xf:input ref="p:boardName">
+          <xf:label>Board name: </xf:label>
+        </xf:input>
+        <xf:secret ref="p:password">
+          <xf:label>Board password: </xf:label>
+        </xf:secret>
+        <xf:input ref="p:email">
+          <xf:label>E-mail: </xf:label>
+        </xf:input>
+        <xf:trigger>
+          <xf:label>Add character</xf:label>
+          <xf:send ev:event="DOMActivate" submission="add-character-submit"/>
+        </xf:trigger>
+      </xf:group>,
+      <xf:group class="character-editor" ref="instance('player-instance')">
+        <xf:repeat nodeset="p:character">
+          <xf:output ref="p:id">
+            <xf:label>Member number: </xf:label>
+          </xf:output>
+          <xf:input ref="p:name">
+            <xf:label>Name:</xf:label>
+          </xf:input>
+          <xf:input ref="p:email">
+            <xf:label>E-mail address:</xf:label>
+          </xf:input>
+          {
+            element { if ($is-admin) then "xf:input" else "xf:output" }{
+              attribute ref { "p:boardName" },
+              <xf:label>Board name:</xf:label>
+            }
+          }
+          Assigned to or Apply, Apply for transfer
+        </xf:repeat>
+      </xf:group>
+    )
+    )
   )
