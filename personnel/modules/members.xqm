@@ -95,77 +95,67 @@ declare function mem:create-member(
     ) 
 };
 
-declare function mem:refresh-board-name-db(
-  ) {
-  system:as-user("admin", $settings:admin-password,
-    mem:refresh-board-name-db(1, ())
-  )
-};
-
-declare function mem:refresh-board-name-db(
-  $start as xs:integer
-  ) {
-  system:as-user("admin", $settings:admin-password,
-    mem:refresh-board-name-db($start, ())
-  )
-};
-
 (: update only new players in the board name db :)
 declare function mem:update-board-name-db(
   ) {
   system:as-user("admin", $settings:admin-password,
-    mem:refresh-board-name-db(
-      (max(doc($mem:board-db-uri)//m:number) + 1, 1)[1], ())
+    local:refresh-board-name-db(doc($mem:board-db-uri)//m:last-start)
   )
 };
 
 declare function mem:refresh-board-name-db(
-  $start as xs:integer,
-  $end as xs:integer?
   ) {
   system:as-user("admin", $settings:admin-password, 
-    local:refresh-board-name-db($start, $end, 10, 0)
+    local:refresh-board-name-db(0)
   )
 };
 
 (: refresh the board name database. do not do this too often :)
 declare function local:refresh-board-name-db(
-  $start as xs:integer,
-  $end as xs:integer?,
-  $max-errors as xs:integer,
-  $n-errors as xs:integer
+  $start as xs:integer?
   ) {
+  let $start := ($start, 0)[1]
+  let $max-results := 60 (: the boards will not take a number > 60 :)
   let $return :=
     http:send-request(
       <http:request 
-        href="http://stsf.net/forums/index.php?showuser={$start}" method="get"
+        href="http://www.stsf.net/forums/index.php?app=members&amp;module=list&amp;sort_key=members_display_name&amp;sort_order=asc&amp;max_results={$max-results}&amp;st={$start}" method="get"
           follow-redirect="true"
           >
       </http:request>
     )
-  let $this-member := doc($mem:board-db-uri)//m:boardname[m:number=$start]
-  let $next-errors := ( 
-    if ($return/@status = "200")
-    then (0,
-      let $boardname := $return//html:span[@class="fn nickname"]/string()
-      return
-        if (exists($this-member))
-        then 
-          if ($this-member/m:name = $boardname)
-          then ( (: nothing to do... :) )
-          else update value $this-member/m:name with $boardname 
-        else
-          update insert element m:boardname {
-            element m:number { $start },
-            element m:name { $boardname }
-          } into doc($mem:board-db-uri)/*
+  let $active-page := ($return//html:li[@class="page active"])[1]/number()
+  let $n-pages := xs:integer(substring-after(($return//html:li[@class="page active"])[1]/preceding-sibling::html:li/html:a[@href="#"], "of "))
+  let $this-page :=
+    for $member in $return//html:ul[@class="ipsMemberList"]/html:li 
+    let $member-number := xs:integer(substring-after($member/@id, "id_"))
+    let $boardname := $member//html:h3/html:strong/html:a/string()
+    let $db-member := doc($mem:board-db-uri)//m:boardname[m:number=$member-number]
+    return (
+      if (exists($db-member))
+      then 
+        if ($db-member/m:name = $boardname)
+        then ( (: nothing to do... :) )
+        else update value $db-member/m:name with $boardname 
+      else
+        update insert element m:boardname {
+          element m:number { $member-number },
+          element m:name { $boardname }
+        } into doc($mem:board-db-uri)/*
     )
-    else $n-errors + 1)
-  return 
-    if ($start = $end or $next-errors >= $max-errors)
-    then ()
+  return
+    if ($active-page < $n-pages)
+    then local:refresh-board-name-db($start + $max-results)
     else
-      local:refresh-board-name-db($start + 1, $end, $max-errors, $next-errors)
+      let $hint := doc($mem:board-db-uri)//m:last-start
+      return 
+        if (exists($hint))
+        then
+          (: this is a hint as to where to update from :)
+          update value $hint with $start
+        else
+          update insert element m:last-start { $start }
+          into doc($mem:board-db-uri)/*
 };
 
 declare function mem:member-number-by-board-name(
