@@ -15,7 +15,10 @@ let $ext-base := $settings:absolute-url-base
 let $authenticated := session:get-attribute("authenticated")
 let $null := util:log-system-out(("controller: path=", $exist:path, " resource=", $exist:resource))
 return
-  if (starts-with($exist:path, "/queries") or starts-with($exist:path, "/resources"))
+  if (
+    starts-with($exist:path, "/queries") or 
+    starts-with($exist:path, "/resources") or
+    starts-with($exist:path, "/views"))
   then
     element exist:dispatch {
       element exist:forward {

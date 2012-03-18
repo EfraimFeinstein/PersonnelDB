@@ -51,6 +51,9 @@ return
       </xf:instance>
       <xf:instance id="new-character-result"/>
       <xf:instance id="player-result"/>
+      <xf:instance id="access-rights-instance" src="{$settings:absolute-url-base}/queries/get-access-rights.xql?player-id={$player-id}">
+      </xf:instance>
+      <xf:bind nodeset="instance('access-rights-instance')/level/access" type="xf:boolean"/> 
       <xf:submission 
         id="player-submit"
         resource="{$settings:absolute-url-base}/queries/{
@@ -85,7 +88,7 @@ return
       </xf:submission>      
       <xf:submission 
         id="add-character-submit"
-        resource="{$settings:absolute-url-base}/queries/add-character.xql?player-id={$member-number}"
+        resource="{$settings:absolute-url-base}/queries/add-character.xql?player-id={$player-id}"
         method="post"
         ref="instance('new-character-instance')"
         replace="instance"
@@ -99,6 +102,21 @@ return
             at="last()"
             origin="instance('new-character-result')"
             />
+        </xf:action>
+        <xf:action ev:event="xforms-submit-error">
+          <xf:message>Error: 
+          <xf:output value="event('response-body')"/></xf:message>
+        </xf:action>
+      </xf:submission>
+      <xf:submission 
+        id="access-rights-submit"
+        resource="{$settings:absolute-url-base}/queries/set-access-rights.xql?player-id={$player-id}"
+        method="post"
+        ref="instance('access-rights-instance')"
+        replace="none"
+        >
+        <xf:action ev:event="xforms-submit-done">
+          <xf:message>Access rights changed successfully.</xf:message>
         </xf:action>
         <xf:action ev:event="xforms-submit-error">
           <xf:message>Error: 
@@ -134,6 +152,20 @@ return
         <xf:send ev:event="DOMActivate" submission="player-submit"/>
       </xf:trigger>
     </xf:group>,
+    if ($is-admin)
+    then
+      <xf:group class="access-rights-editor" ref="instance('access-rights-instance')">
+        <xf:label>Access rights editor</xf:label>
+        <xf:repeat nodeset="level">
+          <xf:output ref="name"/>
+          <xf:input ref="access"/>
+        </xf:repeat>
+        <xf:trigger>
+          <xf:label>Set rights</xf:label>
+          <xf:send ev:event="DOMActivate" submission="access-rights-submit"/>
+        </xf:trigger>
+      </xf:group>
+    else (),
     if ($new)
     then ()
     else (

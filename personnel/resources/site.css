@@ -185,6 +185,16 @@ div#sidebar li {
   margin-bottom:0.5ex;
 }
 
+div#sidebar nav {
+  list-style-type: none;
+  padding: 0px;
+  margin: 0px;
+}
+
+div#sidebar a {
+  display:block;
+}
+
 div#mainContent {
   float:left;
 	width:87%;
