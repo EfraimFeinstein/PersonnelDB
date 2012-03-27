@@ -17,10 +17,16 @@ let $player-id := request:get-parameter("player-id", $logged-in)
 return
   if ($logged-in)
   then
-    let $db-user := mem:member-name($player-id)
+    let $db-user := 
+      if ($player-id = "new")
+      then () 
+      else mem:member-name($player-id)
     return
       <levels xmlns="">{
-        let $user-groups := xmldb:get-user-groups($db-user)
+        let $user-groups := 
+          if ($player-id = "new") 
+          then ()
+          else xmldb:get-user-groups($db-user)
         for $group in sm:get-groups()[not(.=("dba","guest"))][not(starts-with(.,"member-"))]
         let $is-member := $group = $user-groups
         order by $group

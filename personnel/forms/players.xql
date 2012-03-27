@@ -152,7 +152,7 @@ return
         <xf:send ev:event="DOMActivate" submission="player-submit"/>
       </xf:trigger>
     </xf:group>,
-    if ($is-admin)
+    if ($is-admin and not($new))
     then
       <xf:group class="access-rights-editor" ref="instance('access-rights-instance')">
         <xf:label>Access rights editor</xf:label>
