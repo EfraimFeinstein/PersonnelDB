@@ -7,6 +7,10 @@ Day = element day {
 }
 
 Roster = element roster {
+  element unassigned {
+  	# players on the ship but unassigned to positions
+    element heldBy { xsd:integer? }*
+  },
   element department {
     element name { xsd:string { minLength="1" }},
     element position {
@@ -28,7 +32,5 @@ Ship = element ship {
   element beginTime { xsd:time },
   element endTime { xsd:time },
   element description { text },
-  # the GM element references characters by unique ID
-  element GM { xsd:integer }+,
   Roster
 }
