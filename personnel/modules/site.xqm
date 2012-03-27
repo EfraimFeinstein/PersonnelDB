@@ -182,7 +182,7 @@ declare function site:sidebar()
     then
       <nav>
         <a href="players">Administrate players</a>
-        <a href="ships">Administrate ships</a>
+        <a href="ships?ship=new">Add new ship</a>
       </nav>
     else ()
 	)
