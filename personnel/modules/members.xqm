@@ -164,6 +164,13 @@ declare function mem:member-number-by-board-name(
   doc($mem:board-db-uri)//m:boardname[m:name=$boardName]/m:number
 };
 
+declare function mem:board-name-by-member-name(
+  $member-name as xs:string
+  ) as xs:string? {
+  doc($mem:board-db-uri)//m:boardName
+    [m:number=xs:integer(substring-after($member-name, '-'))]/m:name/string()
+};
+
 declare function mem:login-member(
   $member-number as xs:integer
   ) as xs:boolean? {
