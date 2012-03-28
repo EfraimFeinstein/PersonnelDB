@@ -176,13 +176,13 @@ declare function site:sidebar()
     then
       <nav>
         <a href="players?player-id=new">Add (graduate) a player</a>
-        <a href="ships">Administrate ships</a>
+        <a href="view-ships">Administrate ships</a>
       </nav>
     else (),
     if ($is-admin)
     then
       <nav>
-        <a href="players">Administrate players</a>
+        <a href="view-players">Administrate players</a>
         <a href="ships?ship=new">Add new ship</a>
       </nav>
     else ()

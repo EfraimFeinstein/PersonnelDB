@@ -63,6 +63,16 @@ return
         element exist:forward { 
           attribute url { concat($db-base, "forms/ships.xql") }
         } 
+      case "view-players"
+      return
+        element exist:forward {
+          attribute url { concat($db-base, "views/view-players.xql") }
+        }
+      case "view-ships"
+      return
+        element exist:forward {
+          attribute url { concat($db-base, "views/view-ships.xql") }
+        }
       default 
       return 
         element exist:ignore { () } 
