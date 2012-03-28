@@ -48,6 +48,7 @@ declare function local:transform(
         $n/@*,
         local:transform($n/node())
       }
+    case document-node() return local:transform($n/node())
     default return $n
 };
 
@@ -60,7 +61,7 @@ return
   else if ($ship = "new")
   then
     if (prs:is-administrator())
-    then doc("/db/personnel/resources/ship-template.xml")
+    then local:transform(doc("/db/personnel/resources/ship-template.xml"))
     else prs:error(403, "Only administrators can create new ships")
   else
     let $ship-xml := ship:get-ship($ship)

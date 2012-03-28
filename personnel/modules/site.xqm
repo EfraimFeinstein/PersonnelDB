@@ -90,7 +90,8 @@ declare function site:form(
 	$site:xslt-pi, $site:debug-pi,
 	<html	
 	  xmlns:p="http://stsf.net/personnel/players"
-	  xmlns:s="http://stsf.net/personnel/ships">
+	  xmlns:s="http://stsf.net/personnel/ships"
+	  xmlns:x="http://stsf.net/personnel/extended">
 		<head>
 			{
 			$css,
