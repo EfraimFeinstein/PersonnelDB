@@ -22,14 +22,14 @@ declare variable $ship:ship-collection :=
 declare function ship:get-ship(
   $name as xs:string
   ) as element(s:ship)? {
-  collection($ship:ship-collection)//s:ship[.=$name]
+  collection($ship:ship-collection)//s:ship[s:name=$name]
 };
 
 (: determine a ship resource by ship name :)
 declare function ship:ship-resource(
   $name as xs:string
   ) as xs:string? {
-  concat(string($name), ".xml")
+  concat(encode-for-uri(string($name)), ".xml")
 };
 
 declare function ship:can-edit-ship(
@@ -72,7 +72,7 @@ declare function ship:edit-ship(
     then
       error(xs:QName("error:EDIT"), "Access denied")
     else if (
-      not(validation:jing($player, xs:anyURI("/db/personnel/schemas/ships.rnc")))
+      not(validation:jing($ship, xs:anyURI("/db/personnel/schemas/ships.rnc")))
       and local:additional-validation($ship)
       )
     then
@@ -94,13 +94,12 @@ declare function ship:edit-ship(
             system:as-user("admin", $settings:admin-password,
             (
             if (xmldb:group-exists($ship-gm-group))
-            then ()
+            then true()
             else xmldb:create-group($ship-gm-group, "admin"),
             sm:chown($ship-resource, "admin"),
             sm:chgrp($ship-resource, $ship-gm-group),
             sm:chmod($ship-resource, "rw-rw-r--"),
-            sm:add-group-ace($ship-resource, "administrator", true(), "w"),
-            true()
+            sm:add-group-ace($ship-resource, "administrator", true(), "w")
           )
         )
         else 

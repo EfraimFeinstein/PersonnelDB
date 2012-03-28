@@ -24,6 +24,7 @@ declare namespace xf="http://www.w3.org/2002/xforms";
 declare namespace html="http://www.w3.org/1999/xhtml";
 declare namespace p="http://stsf.net/personnel/players";
 declare namespace s="http://stsf.net/personnel/ships";
+declare namespace x="http://stsf.net/personnel/extended";
 
 let $member-number := session:get-attribute("member-number")
 let $ship := request:get-parameter("ship", ())
@@ -36,6 +37,8 @@ return
       <xf:instance id="ship-instance"
         src="{$settings:absolute-url-base}/queries/get-ship.xql?ship={$ship}">
       </xf:instance>
+      <xf:bind nodeset="instance('ship-instance')/s:beginTime" type="xf:time"/>
+      <xf:bind nodeset="instance('ship-instance')/s:endTime" type="xf:time"/>
       <xf:instance id="new-department-instance">
         <s:department>
           <s:name/>
@@ -58,7 +61,7 @@ return
       </xf:instance>
       <xf:instance id="game-masters">
         <gms xmlns="">{
-          for $gm in sm:get-group-members(concat($ship, " GM"))
+          for $gm in sm:get-group-members(concat($ship, " GM"))[not(.="admin")]
           return <gm>{mem:board-name-by-member-name($gm)}</gm>
         }</gms>
       </xf:instance>
@@ -114,11 +117,30 @@ return
         then <span class="no-gms">Game masters can be assigned in the <a href="{$settings:absolute-url-base}/forms/players">player console</a>.</span>
         else () 
       }</xf:group>
+      <xf:group class="meeting-time">
+        <xf:select1 ref="s:day">
+          <xf:label>Meeting day: </xf:label>
+          {
+            for $day in ("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+            return
+              <xf:item>
+                <xf:label>{$day}</xf:label>
+                <xf:value>{$day}</xf:value>
+              </xf:item>
+          }
+        </xf:select1>
+        <xf:input ref="s:beginTime">
+          <xf:label>Starts at: </xf:label>
+        </xf:input>
+        <xf:input ref="s:endTime">
+          <xf:label>Ends at: </xf:label>
+        </xf:input>
+      </xf:group>
       <xf:group class="roster-editor" ref="s:roster">
         <xf:repeat nodeset="s:unassigned/">
           <xf:label>Unassigned players</xf:label>
           <xf:repeat nodeset="s:heldBy">
-            <xf:output ref=".">
+            <xf:output ref="@x:boardName">
               <xf:label>Player: </xf:label>
             </xf:output>
           </xf:repeat>
@@ -159,7 +181,7 @@ return
                 <xf:value>reserved</xf:value>
               </xf:item>
             </xf:select1>
-            <xf:output ref="s:heldBy">
+            <xf:output ref="s:heldBy/@x:boardName">
               <xf:label>Held by: </xf:label>
             </xf:output>
             <xf:trigger>
