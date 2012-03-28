@@ -1,4 +1,4 @@
-/* Rev. 534
+/* 1.0RC
 
 Copyright (C) 2008-2012 agenceXML - Alain COUTHURES
 Contact at : xsltforms@agencexml.com
@@ -41,8 +41,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 /*global XsltForms_typeDefs : true, XsltForms_exprContext : true */
 var XsltForms_globals = {
 
-	fileVersion: "534",
-	fileVersionNumber: 534,
+	fileVersion: "1.0RC",
+	fileVersionNumber: 535,
 
 	language: "navigator",
 	debugMode: false,
@@ -239,7 +239,7 @@ var XsltForms_globals = {
 	profiling_data : function() {
 		var s = '<xsltforms:dump xmlns:xsltforms="http://www.agencexml.com/xsltforms">';
 		s += '<xsltforms:date>' + XsltForms_browser.i18n.format(new Date(), "yyyy-MM-ddThh:mm:ssz", true) + '</xsltforms:date>';
-		s += '<xsltforms:location>' + window.location.href + '</xsltforms:location>';
+		s += '<xsltforms:location>' + XsltForms_browser.escape(window.location.href) + '</xsltforms:location>';
 		s += '<xsltforms:appcodename>' + navigator.appCodeName + '</xsltforms:appcodename>';
 		s += '<xsltforms:appname>' + navigator.appName + '</xsltforms:appname>';
 		s += '<xsltforms:appversion>' + navigator.appVersion + '</xsltforms:appversion>';
@@ -338,7 +338,7 @@ var XsltForms_globals = {
 		} catch(e) {
 			alert("File not found: " + XsltForms_browser.ROOT + "xsltforms_profiler.xhtml");
 		}
-		if (req.status === 200) {
+		if (req.status === 200 || req.status === 0) {
 			var s = XsltForms_browser.transformText(req.responseText, XsltForms_browser.ROOT + "xsltforms.xsl", false, "xsltforms_debug", "false", "baseuri", XsltForms_browser.ROOT);
 			if (s.substring(0, 21) === '<?xml version="1.0"?>') {
 				s = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' + s.substring(21);
@@ -805,7 +805,10 @@ var XsltForms_browser = {
 		} catch(e) {
 			alert("File not found: " + uri);
 		}
-		if (req.status === 200) {
+		if (req.status === 200 || req.status === 0) {
+			if (req.responseXML.xml === "") {
+				req.responseXML.loadXML(req.responseText);
+			}
 			XsltForms_browser.loadNode(XsltForms_browser.config, XsltForms_browser.selectSingleNode('//properties', req.responseXML));
 			var inst = document.getElementById(XsltForms_browser.idPf + "instance-config").xfElement;
 			XsltForms_browser.config = inst.doc.documentElement;
