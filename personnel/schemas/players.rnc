@@ -11,7 +11,7 @@ Application = element application {
   # the cascade status means that the application 
   # will only activate if the previous application is rejected
   # if it's accepted, it will be cleared 
-  element status { ("Active", "Approved", "Rejected", "Cascade") },
+  element status { ("pending", "approved", "rejected", "cascade") },
   # timestamp on the application
   element applyDate { xsd:dateTime },
   # timestamp on the decision
