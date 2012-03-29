@@ -136,6 +136,9 @@ return
           <xf:label>Ends at: </xf:label>
         </xf:input>
       </xf:group>
+      <xf:textarea ref="s:description">
+        <xf:label>Short description:</xf:label>
+      </xf:textarea>
       <xf:group class="roster-editor" ref="s:roster">
         <xf:repeat nodeset="s:unassigned/">
           <xf:label>Unassigned players</xf:label>
