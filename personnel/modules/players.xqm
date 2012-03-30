@@ -197,27 +197,31 @@ declare function pl:set-access-level(
     error(xs:QName("error:RIGHTS"), "Only an administrator can set access levels")
 };
 
-(: apply a character to a position -- assume checks already done :)
+(: apply a character to a position -- assume checks already done 
+ : return the application status
+ :)
 declare function pl:apply(
   $ship as xs:string,
   $position as xs:integer,
   $character as xs:integer
-  ) {
+  ) as xs:string {
   let $pl := pl:get-player-by-id($character)
   let $ch := $pl/p:character[p:id=$character]
-  return
+  let $status := 
+    (: if waiting for another application, 
+    cascade, otherwise, pending :)
+    if ($ch/p:history/p:application[not(p:decisionDate)])
+    then "cascade"
+    else "pending"
+  return (
     update insert element p:application {
       element p:ship { $ship },
       element p:position { $position },
-      element p:status {
-        (: if waiting for another application, 
-        cascade, otherwise, pending :)
-        if ($ch/p:history/p:application[not(p:decisionDate)])
-        then "cascade"
-        else "pending"
-      },
+      element p:status { $status },
       element p:applyDate { current-dateTime() }
-    } into $ch/p:history
+    } into $ch/p:history,
+    $status
+  )
 };
 
 declare function pl:approve(

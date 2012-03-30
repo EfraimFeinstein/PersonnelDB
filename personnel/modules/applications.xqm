@@ -88,9 +88,15 @@ declare function appl:apply(
   $position as xs:integer,
   $character as xs:integer
   ) {
-  ship:apply($ship, $position, $character),
-  pl:apply($ship, $position, $character),
-  local:send-application-email($ship, $position, $character)
+  let $status := pl:apply($ship, $position, $character)
+  return
+    if ($status = "pending")
+    then (
+      (: do not block up positions for cascading applications :)
+      let $app := ship:apply($ship, $position, $character)
+      return local:send-application-email($ship, $position, $character)
+    )
+    else ()
 };
 
 declare function appl:approve(
@@ -125,8 +131,8 @@ declare function appl:reject(
   $position as xs:integer,
   $character as xs:integer
   ) {
-  ship:reject($ship, $position, $character),
   pl:reject($ship, $position, $character),
+  let $ship-result := ship:reject($ship, $position)
   let $pl := pl:get-player($character)
   let $ch := $pl/p:character[p:id=$character]
   let $next-cascade := $ch/p:history/p:application[p:status="cascade"][1]
@@ -152,5 +158,11 @@ declare function appl:reject(
       )
       return ()
     else 
-      local:send-application-email($next-cascade/p:ship, $next-cascade/p:position, $character)
+      let $next-ship := $next-cascade/p:ship
+      let $next-position := $next-cascade/p:position
+      let $appl := ship:apply($next-ship, $next-position, $character)
+      return 
+        if ($appl)
+        then local:send-application-email($next-ship, $next-position, $character)
+        else appl:reject($next-ship, $next-position, $character)
 };

@@ -19,7 +19,10 @@ Roster = element roster {
       element name { xsd:string { minLength = "1" } },
       # if an application exists for a position, it goes into "pending" status
       # until the GM approves or rejects the application
-      element status { ("open" | "filled" | "pending" | "reserved") },
+      element status {
+      	attribute saved { xsd:string }?,
+       ("open" | "filled" | "pending" | "reserved") 
+      },
       # heldBy references a character if the position is filled
       element heldBy { xsd:integer? }
     }+

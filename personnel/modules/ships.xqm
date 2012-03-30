@@ -173,16 +173,22 @@ declare function ship:get-position(
 
 (: process an application to a position -- assume all other checks
  : have taken place
+ : return true() if the position can be applied for
  :)
 declare function ship:apply(
   $ship as xs:string,
   $position as xs:integer,
   $character as xs:integer
-  ) {
+  ) as xs:boolean? {
   let $pos := ship:get-position($ship, $position)
+  where not($pos/s:status = ("pending", "filled"))
   return (
+    if ($pos/s:status/@saved)
+    then update value $pos/s:status/@saved with $pos/s:status 
+    else update insert attribute saved { $pos/s:status } into $pos/s:status,
     update value $pos/s:status with "pending",
-    update value $pos/s:heldBy with $character
+    update value $pos/s:heldBy with $character,
+    true()
   )
 };
 
@@ -199,12 +205,14 @@ declare function ship:approve(
 (: reject a pending application :)
 declare function ship:reject(
   $ship as xs:string,
-  $position as xs:integer,
-  $new-status as xs:string
-  ) {
+  $position as xs:integer
+  ) as xs:boolean? {
   let $pos := ship:get-position($ship, $position)
+  (: only pending applications can be rejected! :)
+  where $pos/s:status = "pending"
   return ( 
-    update value $pos/s:status with $new-status,
-    update value $pos/s:heldBy with ""
+    update value $pos/s:status with $pos/s:status/@saved,
+    update value $pos/s:heldBy with "",
+    true()
   )
 };
