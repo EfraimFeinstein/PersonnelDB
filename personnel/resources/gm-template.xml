@@ -1,0 +1,7 @@
+<m:template xmlns:m="http://stsf.net/personnel/mail">
+Dear GM,
+
+<m:character/> has applied for a position of <m:position/> on <m:ship/>.
+
+To approve or reject this request, go to the personnel self service website and administrate <m:ship/>. 
+</m:template>

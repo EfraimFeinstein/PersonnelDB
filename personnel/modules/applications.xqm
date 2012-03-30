@@ -54,12 +54,33 @@ declare function local:template(
     , " ")
 };
 
-declare function local:send-approval-email(
+declare function local:send-application-email(
   $ship as xs:string,
   $position as xs:integer,
   $character as xs:integer
   ) {
-  ()
+  let $sent := mail:send-email(
+    <mail>
+      <from>{$settings:from-email-address}</from>
+      <reply-to/>
+      {
+        for $gm in ship:get-game-master-players($ship)
+        return
+          <to>{$gm/p:email/string()}</to>
+      }
+      <cc/>
+      <bcc/>
+      <subject>Star Trek Simulation Forum application</subject>
+      <message>
+        <text>{
+          local:template(doc("/personnel/resources/gm-template.xml"),
+          $ship,$position,$character)
+        }</text>
+      </message>
+    </mail>, 
+    $settings:smtp-server, ()
+  )
+  return ()
 };
 
 declare function appl:apply(
@@ -69,7 +90,7 @@ declare function appl:apply(
   ) {
   ship:apply($ship, $position, $character),
   pl:apply($ship, $position, $character),
-  local:send-approval-email($ship, $position, $character)
+  local:send-application-email($ship, $position, $character)
 };
 
 declare function appl:approve(
@@ -79,7 +100,7 @@ declare function appl:approve(
   ) {
   ship:approve($ship, $position, $character),
   pl:approve($ship, $position, $character),
-  mail:send-email(
+  let $sent := mail:send-email(
     <mail>
       <from>{$settings:from-email-address}</from>
       <reply-to/>
@@ -96,6 +117,7 @@ declare function appl:approve(
     </mail>, 
     $settings:smtp-server, ()
   )
+  return ()
 };
 
 declare function appl:reject(
@@ -111,7 +133,7 @@ declare function appl:reject(
   return
     if (empty($next-cascade))
     then
-      mail:send-email(
+      let $sent := mail:send-email(
         <mail>
           <from>{$settings:from-email-address}</from>
           <reply-to/>
@@ -128,6 +150,7 @@ declare function appl:reject(
         </mail>, 
         $settings:smtp-server, ()
       )
+      return ()
     else 
-      local:send-approval-email($next-cascade/p:ship, $next-cascade/p:position, $character)
+      local:send-application-email($next-cascade/p:ship, $next-cascade/p:position, $character)
 };
