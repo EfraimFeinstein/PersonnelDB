@@ -9,6 +9,8 @@ import module namespace settings="http://stsf.net/xquery/settings"
   at "settings.xqm";
 import module namespace mem="http://stsf.net/xquery/members"
   at "members.xqm";
+import module namespace pl="http://stsf.net/xquery/players"
+  at "players.xqm";
 import module namespace prs="http://stsf.net/xquery/personnel"
   at "personnel.xqm";
 
@@ -136,8 +138,17 @@ declare function ship:remove-gm(
 declare function ship:is-game-master(
   $ship as xs:string
   ) as xs:boolean {
-  xmldb:get-group-members(concat($ship, " GM"))=
+  sm:get-group-members(concat($ship, " GM"))=
     mem:member-name(session:get-attribute("member-number"))
+};
+
+(: return the player records of the GMs of the given ship :)
+declare function ship:get-game-master-players(
+  $ship as xs:string
+  ) as element(p:player)+ {
+  for $gms in sm:get-group-members(concat($ship, " GM"))[not(.="admin")]
+  return
+    pl:get-player(mem:board-name-by-member-name($gm))
 };
 
 declare function ship:is-open-position(
