@@ -22,6 +22,12 @@ declare variable $settings:admin-numbers := (Insert, Numbers, Here);
 (: email addresses for first administrative users :)
 declare variable $settings:admin-emails := ("Insert", "Email Addresses", "Here");
 
+(: email address that mail comes from :)
+declare variable $settings:from-email-address := "personnel@forum.com";
+
+(: SMTP server :)
+declare variable $settings:smtp-server := "localhost";
+
 (: update interval for full board name refresh
  : full refresh will hit stsf.net a lot!
  : default: 7 days

@@ -49,6 +49,12 @@ declare function pl:get-player(
   (collection($pl:player-collection)//p:boardName[.=$name]/ancestor::p:player)[1]
 };
 
+declare function pl:get-player-by-id(
+  $id as xs:integer
+  ) as element(p:player)? {
+  (collection($pl:player-collection)//p:player[descendant::p:id=$id])[1]
+};
+
 (: determine a player resource by board name or integer id :)
 declare function pl:player-resource(
   $player-id as item()
@@ -189,4 +195,65 @@ declare function pl:set-access-level(
       ))
   else 
     error(xs:QName("error:RIGHTS"), "Only an administrator can set access levels")
+};
+
+(: apply a character to a position -- assume checks already done :)
+declare function pl:apply(
+  $ship as xs:string,
+  $position as xs:integer,
+  $character as xs:integer
+  ) {
+  let $pl := pl:get-player-by-id($character)
+  let $ch := $pl/p:character[p:id=$character]
+  return
+    update insert element p:application {
+      element p:ship { $ship },
+      element p:position { $position },
+      element p:status {
+        (: if waiting for another application, 
+        cascade, otherwise, pending :)
+        if ($ch/p:history/p:application[not(p:decisionDate)])
+        then "cascade"
+        else "pending"
+      },
+      element p:applyDate { current-dateTime() }
+    } into $ch/p:history
+};
+
+declare function pl:approve(
+  $ship as xs:string,
+  $position as xs:integer,
+  $character as xs:integer
+  ) {
+  let $pl := pl:get-player-by-id($character)
+  let $ch := $pl/p:character[p:id=$character]
+  let $app := $ch/p:history/p:application
+    [p:ship=$ship][p:position=$position]
+  return (
+    update value $app/p:status with "approved",
+    update insert element p:decisionDate { 
+      current-dateTime() 
+    } into $app,
+    update delete $app/p:history/p:application[p:status="cascade"]
+  )
+};
+
+declare function pl:reject(
+  $ship as xs:string,
+  $position as xs:integer,
+  $character as xs:integer
+  ) {
+  let $pl := pl:get-player-by-id($character)
+  let $ch := $pl/p:character[p:id=$character]
+  let $app := $ch/p:history/p:application
+    [p:ship=$ship][p:position=$position]
+  return (
+    update value $app/p:status with "rejected",
+    update insert element p:decisionDate { 
+      current-dateTime() 
+    } into $app,
+    update value 
+      $app/p:history/p:application[p:status="cascade"][1]/p:status
+      with "pending"
+  )
 };

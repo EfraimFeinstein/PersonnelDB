@@ -1,0 +1,9 @@
+<m:template xmlns:m="http://stsf.net/personnel/mail">
+Dear <m:character/>,
+
+Welcome to the Star Trek Simulation Forum.
+
+You have been accepted to the post of <m:position/> on <m:ship/>.
+
+Please confirm your interest in simming on their ship by emailing the game masters <m:gm/>.
+</m:template>

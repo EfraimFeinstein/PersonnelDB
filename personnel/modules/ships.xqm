@@ -131,3 +131,69 @@ declare function ship:remove-gm(
   else
     error(xs:QName("error:ACCESS"),"Access denied")
 };
+
+(: is the current logged in user a GM of the given ship? :)
+declare function ship:is-game-master(
+  $ship as xs:string
+  ) as xs:boolean {
+  xmldb:get-group-members(concat($ship, " GM"))=
+    mem:member-name(session:get-attribute("member-number"))
+};
+
+declare function ship:is-open-position(
+  $ship as xs:string,
+  $position-id as xs:integer
+  ) as xs:boolean {
+  exists(collection($ship:ship-collection)//
+    s:ship[s:name=$ship]/descendant::s:position
+      [s:id=$position-id][
+        s:status=("open",
+         "reserved"[ship:is-game-master()])
+      ])
+};
+
+declare function ship:get-position(
+  $ship as xs:string,
+  $position as xs:integer
+  ) as element(s:position)? {
+  collection($ship:ship-collection)//s:ship[s:name=$ship]/
+    descendant::s:position[s:id=$position]
+};
+
+(: process an application to a position -- assume all other checks
+ : have taken place
+ :)
+declare function ship:apply(
+  $ship as xs:string,
+  $position as xs:integer,
+  $character as xs:integer
+  ) {
+  let $pos := ship:get-position($ship, $position)
+  return (
+    update value $pos/s:status with "pending",
+    update value $pos/s:heldBy with $character
+  )
+};
+
+(: approve an application and assign a character :)
+declare function ship:approve(
+  $ship as xs:string,
+  $position as xs:integer
+  ) {
+  let $pos := ship:get-position($ship, $position)
+  return 
+    update value $pos/s:status with "filled"
+};
+
+(: reject a pending application :)
+declare function ship:reject(
+  $ship as xs:string,
+  $position as xs:integer,
+  $new-status as xs:string
+  ) {
+  let $pos := ship:get-position($ship, $position)
+  return ( 
+    update value $pos/s:status with $new-status,
+    update value $pos/s:heldBy with ""
+  )
+};

@@ -1,0 +1,7 @@
+<m:template xmlns:m="http://stsf.net/personnel/mail">
+Dear <m:character/>,
+
+Welcome to the Star Trek Simulation Forum.
+
+Your application for posting has been rejected. You can apply to different ships or positions on the personnel website.
+</m:template>
