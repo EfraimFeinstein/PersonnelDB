@@ -104,7 +104,16 @@ declare function appl:approve(
   $position as xs:integer,
   $character as xs:integer
   ) {
-  ship:approve($ship, $position, $character),
+  (: was this a transfer application? if so, leave the previous ship:)
+  let $character := pl:get-player($character)//p:character[p:id=$character]
+  let $old-position := $character/p:history/p:application[p:status="approved"][last()][following-sibling::p:leave]
+  where exists($current-position)
+  return
+    let $old-ship := $old-position/p:ship
+    let $old-position := $old-position/p:position
+    let $null := ship:leave($old-ship, $old-position)
+    return (),
+  ship:approve($ship, $position),
   pl:approve($ship, $position, $character),
   let $sent := mail:send-email(
     <mail>

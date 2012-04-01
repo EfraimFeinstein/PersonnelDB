@@ -36,4 +36,5 @@ declare function local:transform(
 
 let $data := request:get-data()/s:ship 
 let $success := ship:edit-ship(local:transform($data))
+where $success
 return $data

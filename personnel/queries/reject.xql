@@ -18,7 +18,7 @@ declare namespace x="http://stsf.net/personnel/extended";
 
 let $rejection := request:get-data()/x:reject
 let $ship := $rejection/x:ship/string()
-let $position := $approval/x:position/number()
+let $position := $rejection/x:position/number()
 let $pos := ship:get-ship($ship)/descendant::s:position[s:id=$position]
 return
   if (not(prs:is-administrator() or ship:is-game-master($ship)))

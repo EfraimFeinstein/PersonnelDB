@@ -21,11 +21,13 @@ element x:positions {
       return 
         element x:department {
           $dept,
+          (: each identical position should only have one entry :)
           for $position in $position-by-dept
+          group $position as $position-by-name by $position/s:name as $name 
           return
             element x:position {
-              $position/s:name,
-              $position/s:id
+              $name,
+              $position-by-name/s:id
             }
         }
     }

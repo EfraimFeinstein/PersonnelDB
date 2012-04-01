@@ -139,14 +139,14 @@ declare function ship:is-game-master(
   $ship as xs:string
   ) as xs:boolean {
   sm:get-group-members(concat($ship, " GM"))=
-    mem:member-name(session:get-attribute("member-number"))
+    xmldb:get-current-user()
 };
 
 (: return the player records of the GMs of the given ship :)
 declare function ship:get-game-master-players(
   $ship as xs:string
-  ) as element(p:player)+ {
-  for $gms in sm:get-group-members(concat($ship, " GM"))[not(.="admin")]
+  ) as element(p:player)* {
+  for $gm in sm:get-group-members(concat($ship, " GM"))[not(.="admin")]
   return
     pl:get-player(mem:board-name-by-member-name($gm))
 };
@@ -159,7 +159,7 @@ declare function ship:is-open-position(
     s:ship[s:name=$ship]/descendant::s:position
       [s:id=$position-id][
         s:status=("open",
-         "reserved"[ship:is-game-master()])
+         "reserved"[ship:is-game-master($ship)])
       ])
 };
 
@@ -211,8 +211,65 @@ declare function ship:reject(
   (: only pending applications can be rejected! :)
   where $pos/s:status = "pending"
   return ( 
-    update value $pos/s:status with $pos/s:status/@saved,
+    update value $pos/s:status with $pos/s:status/@saved/string(),
     update value $pos/s:heldBy with "",
+    true()
+  )
+};
+
+(: a player leaves a given position :)
+declare function ship:leave(
+  $ship as xs:string,
+  $position as xs:integer
+  ) as xs:boolean? {
+  let $pos := ship:get-position($ship, $position)
+  (: only filled positions can be left! :)
+  where $pos/s:status = "filled"
+  return ( 
+    update value $pos/s:status with $pos/s:status/@saved/string(),
+    update value $pos/s:heldBy with "",
+    true()
+  )
+};
+
+(: reopen a position by unassigning a player, but keep the player
+ : on the ship
+ :)
+declare function ship:unassign(
+  $ship as xs:string,
+  $position as xs:integer
+  ) as xs:boolean? {
+  let $pos := ship:get-position($ship, $position)
+  let $shipx := ship:get-ship($ship)
+  let $heldby := $pos/s:heldBy
+  (: only filled positions can be left! :)
+  where $pos/s:status = "filled"
+  return ( 
+    update insert $heldby into $shipx//s:unassigned[empty(s:heldBy=$heldby)],
+    update value $pos/s:status with $pos/s:status/@saved/string(),
+    update value $pos/s:heldBy with "",
+    true()
+  )
+};
+
+(: reassign an unassigned character :)
+declare function ship:reassign(
+  $ship as xs:string,
+  $position as xs:integer,
+  $character as xs:integer
+  ) as xs:boolean? {
+  let $pos := ship:get-position($ship, $position)
+  let $shipx := ship:get-ship($ship)
+  let $heldby := $shipx//s:unassigned/s:heldBy[.=$character]
+  where exists($heldby) and 
+    $pos/s:status=("open","reserved")
+  return (
+    if ($pos/s:status/@saved)
+    then update value $pos/s:status/@saved with $pos/s:status 
+    else update insert attribute saved { $pos/s:status } into $pos/s:status,
+    update value $pos/s:status with "filled",
+    update value $pos/s:heldBy with $character,
+    update delete $heldby,
     true()
   )
 };

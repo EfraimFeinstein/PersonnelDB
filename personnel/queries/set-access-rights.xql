@@ -22,7 +22,7 @@ return
   then
     system:as-user("admin", $settings:admin-password, 
       let $db-user := mem:member-name($player-id)
-      let $groups := $data/level[access="true"][xmldb:group-exists(.)]
+      let $groups := $data/level[access="true"][xmldb:group-exists(name)]/name
       return
           xmldb:change-user($db-user, (), $groups, ())
     )

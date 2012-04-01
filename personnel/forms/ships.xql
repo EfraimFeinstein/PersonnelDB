@@ -11,6 +11,8 @@ import module namespace prs="http://stsf.net/xquery/personnel"
   at "/db/personnel/modules/personnel.xqm";
 import module namespace pl="http://stsf.net/xquery/players"
   at "/db/personnel/modules/players.xqm";
+import module namespace ship="http://stsf.net/xquery/ships"
+  at "/db/personnel/modules/ships.xqm";
 import module namespace mem="http://stsf.net/xquery/members"
   at "/db/personnel/modules/members.xqm";
 import module namespace site="http://stsf.net/xquery/site"
@@ -29,7 +31,7 @@ declare namespace x="http://stsf.net/personnel/extended";
 let $member-number := session:get-attribute("member-number")
 let $ship := request:get-parameter("ship", ())
 let $new := not($ship) or string($ship) = "new"
-let $is-gm := prs:is-game-master()
+let $is-gm := ship:is-game-master($ship)
 let $is-admin := prs:is-administrator() 
 return
   site:form(
@@ -52,6 +54,38 @@ return
           <s:heldBy/>
         </s:position>
       </xf:instance>
+      <xf:instance id="approve-instance">
+        <x:approve>
+          <x:ship>{$ship}</x:ship>
+          <x:position/>
+        </x:approve>
+      </xf:instance>
+      <xf:instance id="reject-instance">
+        <x:reject>
+          <x:ship>{$ship}</x:ship>
+          <x:position/>
+        </x:reject>
+      </xf:instance>
+      <xf:instance id="leave-instance">
+        <x:leave>
+          <x:ship>{$ship}</x:ship>
+          <x:position/>
+        </x:leave>
+      </xf:instance>
+      <xf:instance id="unassign-instance">
+        <x:unassign>
+          <x:ship>{$ship}</x:ship>
+          <x:position/>
+        </x:unassign>
+      </xf:instance>
+      <xf:instance id="reassign-instance">
+        <x:reassign>
+          <x:ship>{$ship}</x:ship>
+          <x:department/>
+          <x:position/>
+          <x:character/>
+        </x:reassign>
+      </xf:instance>
       <xf:instance id="new-department-options">
         <new-dept xmlns="">
           <n-chiefs>1</n-chiefs>
@@ -61,8 +95,8 @@ return
       </xf:instance>
       <xf:instance id="game-masters">
         <gms xmlns="">{
-          for $gm in sm:get-group-members(concat($ship, " GM"))[not(.="admin")]
-          return <gm>{mem:board-name-by-member-name($gm)}</gm>
+          for $gm in ship:get-game-master-players($ship)
+          return <gm>{$gm/(p:name, p:boardName)[1]/string()}</gm>
         }</gms>
       </xf:instance>
       <xf:submission 
@@ -92,7 +126,82 @@ return
           <xf:message>Error: 
           <xf:output value="event('response-body')"/></xf:message>
         </xf:action>
+      </xf:submission>
+      <xf:submission 
+        id="approve-submit"
+        method="post"
+        resource="{$settings:absolute-url-base}/queries/approve.xql"
+        ref="instance('approve-instance')"
+        replace="none"
+        >
+        <xf:action ev:event="xforms-submit-done">
+          <xf:message>Posting approved successfully.</xf:message>
+        </xf:action>
+        <xf:action ev:event="xforms-submit-error">
+          <xf:message>Error: 
+          <xf:output value="event('response-body')"/></xf:message>
+        </xf:action>
       </xf:submission>      
+      <xf:submission 
+        id="reject-submit"
+        method="post"
+        resource="{$settings:absolute-url-base}/queries/reject.xql"
+        ref="instance('reject-instance')"
+        replace="none"
+        >
+        <xf:action ev:event="xforms-submit-done">
+          <xf:message>Posting rejected successfully.</xf:message>
+        </xf:action>
+        <xf:action ev:event="xforms-submit-error">
+          <xf:message>Error: 
+          <xf:output value="event('response-body')"/></xf:message>
+        </xf:action>
+      </xf:submission>
+      <xf:submission 
+        id="unassign-submit"
+        method="post"
+        resource="{$settings:absolute-url-base}/queries/unassign.xql"
+        ref="instance('unassign-instance')"
+        replace="none"
+        >
+        <xf:action ev:event="xforms-submit-done">
+          <xf:message>Posting unassigned successfully.</xf:message>
+        </xf:action>
+        <xf:action ev:event="xforms-submit-error">
+          <xf:message>Error: 
+          <xf:output value="event('response-body')"/></xf:message>
+        </xf:action>
+      </xf:submission>
+      <xf:submission 
+        id="leave-submit"
+        method="post"
+        resource="{$settings:absolute-url-base}/queries/leave.xql"
+        ref="instance('leave-instance')"
+        replace="none"
+        >
+        <xf:action ev:event="xforms-submit-done">
+          <xf:message>Extended leave granted successfully.</xf:message>
+        </xf:action>
+        <xf:action ev:event="xforms-submit-error">
+          <xf:message>Error: 
+          <xf:output value="event('response-body')"/></xf:message>
+        </xf:action>
+      </xf:submission>
+      <xf:submission 
+        id="reassign-submit"
+        method="post"
+        resource="{$settings:absolute-url-base}/queries/reassign.xql"
+        ref="instance('reassign-instance')"
+        replace="none"
+        >
+        <xf:action ev:event="xforms-submit-done">
+          <xf:message>Character reassigned successfully.</xf:message>
+        </xf:action>
+        <xf:action ev:event="xforms-submit-error">
+          <xf:message>Error: 
+          <xf:output value="event('response-body')"/></xf:message>
+        </xf:action>
+      </xf:submission>
     </xf:model>,
     <title>{
       if ($new)
@@ -146,6 +255,40 @@ return
             <xf:output ref="@x:boardName">
               <xf:label>Player: </xf:label>
             </xf:output>
+            <xf:trigger>
+              <xf:label>Reassign</xf:label>
+              <xf:setvalue ref="instance('reassign-instance')/x:character" value="context()"/>
+              <xf:show ev:event="DOMActivate" dialog="reassign-dialog"/>
+            </xf:trigger>
+            <xf:dialog id="reassign-dialog">
+              <xf:select1 ref="instance('reassign-instance')/x:department">
+                <xf:label>Select department:</xf:label>
+                <xf:itemset nodeset="instance('ship-instance')//s:department">
+                  <xf:label ref="s:name"/>
+                  <xf:value ref="s:name"/>
+                </xf:itemset>
+              </xf:select1>
+              <xf:select1 ref="instance('reassign-instance')/x:position">
+                <xf:label>Select position:</xf:label>
+                <xf:itemset nodeset="instance('ship-instance')//s:department[s:name=instance('reassign-instance')/x:department]/s:position[s:status='open' or s:status='reserved']">
+                  <xf:label ref="s:name"/>
+                  <xf:value ref="s:id"/>
+                </xf:itemset>
+              </xf:select1>
+              <xf:trigger ref="instance('reassign-instance')/x:position[.]">
+                <xf:label>Reassign</xf:label>
+                <xf:action ev:event="DOMActivate">
+                  <xf:hide dialog="reassign-dialog"/>
+                  <xf:send submission="reassign-submit"/>
+                </xf:action>
+              </xf:trigger>
+              <xf:trigger>
+                <xf:label>Cancel</xf:label>
+                <xf:action ev:event="DOMActivate">
+                  <xf:hide dialog="reassign-dialog"/>
+                </xf:action>
+              </xf:trigger>
+            </xf:dialog>
           </xf:repeat>
         </xf:repeat>
         <xf:repeat nodeset="s:department">
@@ -173,7 +316,7 @@ return
             <xf:input ref="s:name">
               <xf:label>Position: </xf:label>
             </xf:input>
-            <xf:select1 ref="s:status">
+            <xf:select1 ref="s:status[not(.='pending' or .='filled')]">
               <xf:label>Status:</xf:label>
               <xf:item>
                 <xf:label>Open</xf:label>
@@ -184,9 +327,40 @@ return
                 <xf:value>reserved</xf:value>
               </xf:item>
             </xf:select1>
+            <xf:output ref="s:status[.='pending' or .='filled']">
+              <xf:label>Status:</xf:label>
+            </xf:output>
             <xf:output ref="s:heldBy/@x:boardName">
               <xf:label>Held by: </xf:label>
             </xf:output>
+            <xf:trigger ref="s:status[.='pending']">
+              <xf:label>Approve</xf:label>
+              <xf:action ev:event="DOMActivate">
+                <xf:setvalue ref="instance('approve-instance')/x:position" value="context()/../s:id"/>
+                <xf:send submission="approve-submit"/>
+              </xf:action>
+            </xf:trigger>
+            <xf:trigger ref="s:status[.='pending']">
+              <xf:label>Reject</xf:label>
+              <xf:action ev:event="DOMActivate">
+                <xf:setvalue ref="instance('reject-instance')/x:position" value="context()/../s:id"/>
+                <xf:send submission="reject-submit"/>
+              </xf:action>
+            </xf:trigger>
+            <xf:trigger ref="s:status[.='filled']">
+              <xf:label>Put on XLOA</xf:label>
+              <xf:action ev:event="DOMActivate">
+                <xf:setvalue ref="instance('leave-instance')/x:position" value="context()/../s:id"/>
+                <xf:send submission="leave-submit"/>
+              </xf:action>
+            </xf:trigger>
+            <xf:trigger ref="s:status[.='filled']">
+              <xf:label>Unassign</xf:label>
+              <xf:action ev:event="DOMActivate">
+                <xf:setvalue ref="instance('unassign-instance')/x:position" value="context()/../s:id"/>
+                <xf:send submission="unassign-submit"/>
+              </xf:action>
+            </xf:trigger>
             <xf:trigger>
               <xf:label>Duplicate position</xf:label>
               <xf:action ev:event="DOMActivate">
