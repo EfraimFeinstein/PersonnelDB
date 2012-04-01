@@ -167,7 +167,7 @@ declare function mem:member-number-by-board-name(
 declare function mem:board-name-by-member-name(
   $member-name as xs:string
   ) as xs:string? {
-  doc($mem:board-db-uri)//m:boardName
+  doc($mem:board-db-uri)//m:boardname
     [m:number=xs:integer(substring-after($member-name, '-'))]/m:name/string()
 };
 
