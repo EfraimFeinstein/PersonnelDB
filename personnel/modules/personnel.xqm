@@ -14,6 +14,7 @@ import module namespace pl="http://stsf.net/xquery/players"
 
 declare namespace html="http://www.w3.org/1999/xhtml";
 declare namespace p="http://stsf.net/personnel/players";
+declare namespace x="http://stsf.net/personnel/extended";
 declare namespace error="http://stsf.net/errors";
 
 declare variable $prs:data-collection := "/db/personnel/data";
