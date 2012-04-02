@@ -19,22 +19,7 @@ declare namespace s="http://stsf.net/personnel/ships";
 declare namespace x="http://stsf.net/personnel/extended";
 declare namespace error="http://stsf.net/error";
 
-declare function local:transform(
-  $node as node()*
-  ) as node()* {
-  for $n in $node
-  return
-    typeswitch($n)
-    case element()
-    return 
-      element { name($n) }{
-        $n/(@* except @x:*),
-        local:transform($n/node())
-      }
-    default return $n
-};
-
 let $data := request:get-data()/s:ship 
-let $success := ship:edit-ship(local:transform($data))
+let $success := ship:edit-ship(prs:remove-extensions($data))
 where $success
 return $data

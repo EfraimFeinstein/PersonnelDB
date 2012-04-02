@@ -127,3 +127,19 @@ declare function prs:is-game-master(
     sm:get-group-members("gamemaster")
   )
 };
+
+(:~ remove everything from the extended namespace :)
+declare function prs:remove-extensions(
+  $node as node()*
+  ) as node()* {
+  for $n in $node
+  return
+    typeswitch($n)
+    case element()
+    return
+      element { name($n) }{
+        $n/(@* except @x:*),
+        prs:remove-extensions($n/node())
+      }
+    default return $n
+};
