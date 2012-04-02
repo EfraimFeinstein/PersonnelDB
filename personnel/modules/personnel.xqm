@@ -138,9 +138,12 @@ declare function prs:remove-extensions(
     typeswitch($n)
     case element()
     return
-      element { name($n) }{
-        $n/(@* except @x:*),
-        prs:remove-extensions($n/node())
-      }
+      if (namespace-uri($n)="http://stsf.net/personnel/extended")
+      then ()
+      else
+        element { name($n) }{
+          $n/(@* except @x:*),
+          prs:remove-extensions($n/node())
+        }
     default return $n
 };

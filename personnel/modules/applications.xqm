@@ -175,3 +175,14 @@ declare function appl:reject(
         then local:send-application-email($next-ship, $next-position, $character)
         else appl:reject($next-ship, $next-position, $character)
 };
+
+declare function appl:leave(
+  $ship as xs:string,
+  $position as xs:integer,
+  $character as xs:integer
+  ) {
+  let $pl := pl:leave($ship, $position, $character)
+  let $sh := ship:leave($ship, $position)
+  return ()
+  
+};

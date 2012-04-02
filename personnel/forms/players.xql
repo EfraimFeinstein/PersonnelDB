@@ -65,6 +65,11 @@ return
             <x:character n=""/>
           </x:application>
         </x:applications>
+      </xf:instance>
+      <xf:instance id="leave-instance">
+        <x:leave>
+          <x:character/>
+        </x:leave>
       </xf:instance> 
       <xf:instance id="open-positions-instance" 
         src="{$settings:absolute-url-base}/queries/get-open-positions.xql"/>
@@ -146,6 +151,21 @@ return
         >
         <xf:action ev:event="xforms-submit-done">
           <xf:message>Applied successfully.</xf:message>
+        </xf:action>
+        <xf:action ev:event="xforms-submit-error">
+          <xf:message>Error: 
+          <xf:output value="event('response-body')"/></xf:message>
+        </xf:action>
+      </xf:submission>
+      <xf:submission 
+        id="leave-submit"
+        resource="{$settings:absolute-url-base}/queries/leave.xql"
+        method="post"
+        ref="instance('leave-instance')"
+        replace="none"
+        >
+        <xf:action ev:event="xforms-submit-done">
+          <xf:message>Went on extended leave successfully.</xf:message>
         </xf:action>
         <xf:action ev:event="xforms-submit-error">
           <xf:message>Error: 
@@ -250,6 +270,10 @@ return
             </xf:trigger>
             <xf:trigger ref="p:application[last()][p:status='approved'][not(following-sibling::p:leave)]">
               <xf:label>Go on extended leave</xf:label>
+              <xf:action ev:event="DOMActivate">
+                <xf:setvalue ref="instance('leave-instance')/x:character" value="context()/ancestor::p:character/p:id"/>
+                <xf:send submission="leave-submit"/>
+              </xf:action>
             </xf:trigger>
           </xf:group>
           <xf:dialog id="application-dialog">

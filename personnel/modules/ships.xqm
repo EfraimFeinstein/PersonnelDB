@@ -265,8 +265,8 @@ declare function ship:reassign(
     $pos/s:status=("open","reserved")
   return (
     if ($pos/s:status/@saved)
-    then update value $pos/s:status/@saved with $pos/s:status 
-    else update insert attribute saved { $pos/s:status } into $pos/s:status,
+    then update value $pos/s:status/@saved with $pos/s:status/string() 
+    else update insert attribute saved { $pos/s:status/string() } into $pos/s:status,
     update value $pos/s:status with "filled",
     update value $pos/s:heldBy with $character,
     update delete $heldby,

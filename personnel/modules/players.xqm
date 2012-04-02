@@ -232,8 +232,13 @@ declare function pl:approve(
   let $pl := pl:get-player-by-id($character)
   let $ch := $pl/p:character[p:id=$character]
   let $app := $ch/p:history/p:application
-    [p:ship=$ship][p:position=$position]
+    [p:ship=$ship][p:position=$position][last()]
+  let $leave := $ch/p:history/p:leave[empty(p:endDate)]
   return (
+    (: if the player is on leave, return him to duty:)
+    if (exists($leave))
+    then update insert element p:endDate { current-dateTime() } into $leave
+    else (),
     update value $app/p:status with "approved",
     update insert element p:decisionDate { 
       current-dateTime() 
@@ -259,5 +264,31 @@ declare function pl:reject(
     update value 
       $app/p:history/p:application[p:status="cascade"][1]/p:status
       with "pending"
+  )
+};
+
+declare function pl:leave(
+  $ship as xs:string,
+  $position as xs:integer,
+  $character as xs:integer
+  ) {
+  let $pl := pl:get-player-by-id($character)
+  let $ch := $pl/p:character[p:id=$character]
+  return (
+    update insert element p:leave {
+      element p:startDate { current-dateTime() }
+    } into $ch/p:history
+  )
+};
+
+declare function pl:return(
+  $character as xs:string
+  ) {
+  let $pl := pl:get-player-by-id($character)
+  let $ch := $pl/p:character[p:id=$character]
+  return (
+    update insert element p:endDate {
+      current-dateTime()
+    } into $ch/p:history/p:leave[last()]
   )
 };

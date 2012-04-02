@@ -251,24 +251,26 @@ return
       <xf:group class="roster-editor" ref="s:roster">
         <xf:repeat nodeset="s:unassigned/">
           <xf:label>Unassigned players</xf:label>
-          <xf:repeat nodeset="s:heldBy">
+          <xf:repeat id="unassigned" nodeset="s:heldBy">
             <xf:output ref="@x:boardName">
               <xf:label>Player: </xf:label>
             </xf:output>
             <xf:trigger>
               <xf:label>Reassign</xf:label>
-              <xf:setvalue ref="instance('reassign-instance')/x:character" value="context()"/>
-              <xf:show ev:event="DOMActivate" dialog="reassign-dialog"/>
+              <xf:action ev:event="DOMActivate">
+                <xf:setvalue ref="instance('reassign-instance')/x:character" value="context()"/>
+                <xf:show dialog="reassign-dialog"/>
+              </xf:action>
             </xf:trigger>
             <xf:dialog id="reassign-dialog">
-              <xf:select1 ref="instance('reassign-instance')/x:department">
+              <xf:select1 ref="instance('reassign-instance')/x:department" appearance="compact">
                 <xf:label>Select department:</xf:label>
                 <xf:itemset nodeset="instance('ship-instance')//s:department">
                   <xf:label ref="s:name"/>
                   <xf:value ref="s:name"/>
                 </xf:itemset>
               </xf:select1>
-              <xf:select1 ref="instance('reassign-instance')/x:position">
+              <xf:select1 ref="instance('reassign-instance')/x:position" appearance="compact">
                 <xf:label>Select position:</xf:label>
                 <xf:itemset nodeset="instance('ship-instance')//s:department[s:name=instance('reassign-instance')/x:department]/s:position[s:status='open' or s:status='reserved']">
                   <xf:label ref="s:name"/>
