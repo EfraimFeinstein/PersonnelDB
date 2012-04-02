@@ -11,6 +11,8 @@
       <create qname="p:boardName" type="xs:string"/>
       <!-- position identifier (roster) -->
       <create qname="s:id" type="xs:integer"/>
+      <!-- characters that hold positions -->
+      <create qname="s:heldBy" type="xs:integer"/>
       <!-- ship name -->
       <create qname="s:name" type="xs:string"/>
       <!-- members database -->
