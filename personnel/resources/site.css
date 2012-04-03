@@ -447,3 +447,20 @@ table.list td {
   background-color:#FF6666;
 }
 
+/* players form */
+.access-rights-editor {
+  border:1px solid black; 
+}
+
+.access-rights-editor>.xforms-label {
+  background-color: gray;
+}
+
+.access-rights-editor .xforms-repeat .xforms-repeat-item {
+  display:inline-block;
+  padding-right:1em;
+}
+
+.access-rights-editor .xforms-repeat .xforms-repeat-item .xforms-control {
+  display:inline;
+}

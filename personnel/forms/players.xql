@@ -179,28 +179,14 @@ return
       else "Edit player"
     }</title>,
     (
-    <xf:group class="player-editor" ref="instance('player-instance')">
-      <xf:output ref="p:id">
-        <xf:label>Member number: </xf:label>
-      </xf:output>
-      <xf:input ref="p:boardName">
-        <xf:label>Board name:</xf:label>
-      </xf:input>
-      <xf:input ref="p:name">
-        <xf:label>Full name:</xf:label>
-      </xf:input>
-      <xf:input ref="p:email">
-        <xf:label>Contact email: </xf:label>
-      </xf:input>
-      <xf:trigger>
-        <xf:label>{
-          if ($new)
-          then "Add player"
-          else "Edit player"
-        }</xf:label>
-        <xf:send ev:event="DOMActivate" submission="player-submit"/>
-      </xf:trigger>
-    </xf:group>,
+    <xf:trigger id="edit-player-trigger">
+      <xf:label>{
+        if ($new)
+        then "Add player"
+        else "Edit player"
+      }</xf:label>
+      <xf:send ev:event="DOMActivate" submission="player-submit"/>
+    </xf:trigger>,
     if ($is-admin and not($new))
     then
       <xf:group class="access-rights-editor" ref="instance('access-rights-instance')">
@@ -215,6 +201,24 @@ return
         </xf:trigger>
       </xf:group>
     else (),
+    <xf:group class="player-editor" ref="instance('player-instance')">
+      <div class="table">
+        <div class="table-header table-row">
+          <div class="table-cell">Board name</div>
+          <div class="table-cell">Full name</div>
+          <div class="table-cell">Contact email</div>
+          <div class="table-cell"></div>
+        </div>
+        <!--xf:output ref="p:id">
+          <xf:label>Member number: </xf:label>
+        </xf:output-->
+        <div class="table-row">
+          <xf:input class="table-cell" ref="p:boardName"/>
+          <xf:input class="table-cell" ref="p:name"/>
+          <xf:input class="table-cell" ref="p:email"/>
+        </div>
+      </div>
+    </xf:group>,
     if ($new)
     then ()
     else (
