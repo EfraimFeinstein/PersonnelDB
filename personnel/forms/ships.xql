@@ -210,46 +210,59 @@ return
     }</title>,
     (
     <xf:group class="ship-editor" ref="instance('ship-instance')">
-      <xf:input ref="s:name">
-        <xf:label>Ship name: </xf:label>
-      </xf:input>
-      <xf:group class="ship-game-masters">{
-        if ($ship != "new")
-        then
-          <xf:repeat nodeset="instance('game-masters')/gm">
-            <xf:output ref=".">
-              <xf:label>GM: </xf:label>
-            </xf:output>
-          </xf:repeat>
-        else (),
-        if ($is-admin)
-        then <span class="no-gms">Game masters can be assigned in the <a href="{$settings:absolute-url-base}/forms/players">player console</a>.</span>
-        else () 
-      }</xf:group>
-      <xf:group class="meeting-time">
-        <xf:select1 ref="s:day">
-          <xf:label>Meeting day: </xf:label>
+      <xf:trigger>
+        <xf:label>{
+          if ($new)
+          then "Add ship"
+          else "Edit ship"
+        }</xf:label>
+        <xf:send ev:event="DOMActivate" submission="edit-ship-submit"/>
+      </xf:trigger>
+      <xf:group class="basic-info">
+        <xf:label>Basic information</xf:label>
+        <xf:input ref="s:name">
+          <xf:label>Ship name: </xf:label>
+        </xf:input>
+        <xf:group class="game-masters">
+          <xf:label>Game masters</xf:label>
           {
+          if ($ship != "new")
+          then
+            <xf:repeat nodeset="instance('game-masters')/gm">
+              <xf:output ref="."/>
+            </xf:repeat>
+          else (),
+          if ($is-admin)
+          then <span class="no-gms">Game masters can be assigned in the <a href="{$settings:absolute-url-base}/forms/players">player console</a>.</span>
+          else () 
+          }
+        </xf:group>
+        <xf:group class="meeting-time">
+          <xf:label>Meeting time</xf:label>
+          <xf:select1 ref="s:day">
+            {
             for $day in ("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
             return
               <xf:item>
                 <xf:label>{$day}</xf:label>
                 <xf:value>{$day}</xf:value>
               </xf:item>
-          }
-        </xf:select1>
-        <xf:input ref="s:beginTime">
-          <xf:label>Starts at: </xf:label>
-        </xf:input>
-        <xf:input ref="s:endTime">
-          <xf:label>Ends at: </xf:label>
-        </xf:input>
+            }
+          </xf:select1>
+          <xf:input ref="s:beginTime">
+            <xf:label>From </xf:label>
+          </xf:input>
+          <xf:input ref="s:endTime">
+            <xf:label>to </xf:label>
+          </xf:input>
+        </xf:group>
+        <xf:textarea class="description" ref="s:description">
+          <xf:label>Short description</xf:label>
+        </xf:textarea>
       </xf:group>
-      <xf:textarea ref="s:description">
-        <xf:label>Short description:</xf:label>
-      </xf:textarea>
       <xf:group class="roster-editor" ref="s:roster">
-        <xf:repeat nodeset="s:unassigned/">
+        <xf:label>Roster</xf:label>
+        <xf:group class="unassigned" ref="s:unassigned[s:heldBy]">
           <xf:label>Unassigned players</xf:label>
           <xf:repeat id="unassigned" nodeset="s:heldBy">
             <xf:output ref="@x:boardName">
@@ -270,7 +283,7 @@ return
                   <xf:value ref="s:name"/>
                 </xf:itemset>
               </xf:select1>
-              <xf:select1 ref="instance('reassign-instance')/x:position" appearance="compact">
+              <xf:select1 ref="instance('reassign-instance')/x:position[instance('reassign-instance')/x:department != '']" appearance="compact">
                 <xf:label>Select position:</xf:label>
                 <xf:itemset nodeset="instance('ship-instance')//s:department[s:name=instance('reassign-instance')/x:department]/s:position[s:status='open' or s:status='reserved']">
                   <xf:label ref="s:name"/>
@@ -292,34 +305,41 @@ return
               </xf:trigger>
             </xf:dialog>
           </xf:repeat>
-        </xf:repeat>
-        <xf:repeat nodeset="s:department">
-          <xf:input ref="s:name">
-            <xf:label>Name:</xf:label>
-          </xf:input>
-          <xf:trigger>
-            <xf:label>Remove department</xf:label>
-            <xf:action ev:event="DOMActivate">
-              <xf:action if="not(s:position/s:heldBy='')">
-                <xf:message>Removing the department. Any players not also assigned elsewhere will be place into the "unassigned" category</xf:message>             
-              </xf:action>
-              <xf:insert 
-                origin="s:position/s:heldBy[not(//s:unassigned/s:heldBy=.)][count(//s:position/s:heldBy[.=current()])=1]"
-                context="//s:unassigned"
-                />
-              <xf:delete nodeset="."/>
-            </xf:action>
-          </xf:trigger>
-          <xf:repeat nodeset="s:position">
-            <!-- this is here for debugging -->
-            <xf:output ref="s:id">
-              <xf:label>Position Id: </xf:label>
-            </xf:output>
-            <xf:input ref="s:name">
-              <xf:label>Position: </xf:label>
+        </xf:group>
+        <xf:repeat class="department" nodeset="s:department">
+          <div class="header-row">
+            <xf:input class="table-cell" ref="s:name">
+              <xf:label>Department: </xf:label>
             </xf:input>
-            <xf:select1 ref="s:status[not(.='pending' or .='filled')]">
-              <xf:label>Status:</xf:label>
+            <xf:trigger class="table-cell">
+              <xf:label>Remove</xf:label>
+              <xf:action ev:event="DOMActivate">
+                <xf:action if="not(s:position/s:heldBy='')">
+                  <xf:message>Removing the department. Any players not also assigned elsewhere will be place into the "unassigned" category</xf:message>             
+                </xf:action>
+                <xf:insert 
+                  origin="s:position/s:heldBy[not(//s:unassigned/s:heldBy=.)][count(//s:position/s:heldBy[.=current()])=1]"
+                  context="//s:unassigned"
+                  />
+                <xf:delete nodeset="."/>
+              </xf:action>
+            </xf:trigger>
+            <div class="table-cell"/>
+            <div class="table-cell"/>
+          </div>
+          <div class="table-row">
+            <div class="table-cell">Position</div>
+            <div class="table-cell">Status</div>
+            <div class="table-cell">Held by</div>
+            <div class="table-cell"></div>
+          </div>
+          <xf:repeat class="positions" nodeset="s:position">
+            <!-- this is here for debugging -->
+            <!--xf:output ref="s:id">
+              <xf:label>Position Id: </xf:label>
+            </xf:output-->
+            <xf:input class="table-cell" ref="s:name"/>
+            <xf:select1 class="table-cell" ref="s:status[not(.='pending' or .='filled')]">
               <xf:item>
                 <xf:label>Open</xf:label>
                 <xf:value>open</xf:value>
@@ -329,67 +349,66 @@ return
                 <xf:value>reserved</xf:value>
               </xf:item>
             </xf:select1>
-            <xf:output ref="s:status[.='pending' or .='filled']">
-              <xf:label>Status:</xf:label>
-            </xf:output>
-            <xf:output ref="s:heldBy/@x:boardName">
-              <xf:label>Held by: </xf:label>
-            </xf:output>
-            <xf:trigger ref="s:status[.='pending']">
-              <xf:label>Approve</xf:label>
-              <xf:action ev:event="DOMActivate">
-                <xf:setvalue ref="instance('approve-instance')/x:position" value="context()/../s:id"/>
-                <xf:send submission="approve-submit"/>
-              </xf:action>
-            </xf:trigger>
-            <xf:trigger ref="s:status[.='pending']">
-              <xf:label>Reject</xf:label>
-              <xf:action ev:event="DOMActivate">
-                <xf:setvalue ref="instance('reject-instance')/x:position" value="context()/../s:id"/>
-                <xf:send submission="reject-submit"/>
-              </xf:action>
-            </xf:trigger>
-            <xf:trigger ref="s:status[.='filled']">
-              <xf:label>Put on XLOA</xf:label>
-              <xf:action ev:event="DOMActivate">
-                <xf:setvalue ref="instance('leave-instance')/x:position" value="context()/../s:id"/>
-                <xf:send submission="leave-submit"/>
-              </xf:action>
-            </xf:trigger>
-            <xf:trigger ref="s:status[.='filled']">
-              <xf:label>Unassign</xf:label>
-              <xf:action ev:event="DOMActivate">
-                <xf:setvalue ref="instance('unassign-instance')/x:position" value="context()/../s:id"/>
-                <xf:send submission="unassign-submit"/>
-              </xf:action>
-            </xf:trigger>
-            <xf:trigger>
-              <xf:label>Duplicate position</xf:label>
-              <xf:action ev:event="DOMActivate">
-                <xf:insert 
-                  origin="instance('new-position-instance')"
-                  nodeset="." 
-                  position="after"/>
-                <xf:setvalue ref="following-sibling::s:position[1]/s:id" 
-                  value="//s:id[not(//s:id &gt; .)] + 1"/>
-                <xf:setvalue ref="following-sibling::s:position[1]/s:name"
-                  value="context()/s:name"/>
-              </xf:action>
-            </xf:trigger>
-            <xf:trigger>
-              <xf:label>Remove position</xf:label>
-              <xf:action ev:event="DOMActivate">
-                <xf:message if="not(s:heldBy='')">If not already assigned to another position, the player will be placed in the "unassigned" category</xf:message>             
-                <xf:insert 
-                  origin="s:heldBy[not(//s:unassigned/s:heldBy=.)][count(//s:heldBy[.=current()])=1]"
-                  context="//s:unassigned"
-                  />
-                <xf:delete nodeset="."/>
-              </xf:action>
-            </xf:trigger>
+            <xf:output class="table-cell" ref="s:status[.='pending' or .='filled']"/>
+            <xf:output class="table-cell" ref="s:heldBy/@x:boardName"/>
+            <xf:group class="table-cell">
+              <xf:trigger ref="s:status[.='pending']">
+                <xf:label>Approve</xf:label>
+                <xf:action ev:event="DOMActivate">
+                  <xf:setvalue ref="instance('approve-instance')/x:position" value="context()/../s:id"/>
+                  <xf:send submission="approve-submit"/>
+                </xf:action>
+              </xf:trigger>
+              <xf:trigger ref="s:status[.='pending']">
+                <xf:label>Reject</xf:label>
+                <xf:action ev:event="DOMActivate">
+                  <xf:setvalue ref="instance('reject-instance')/x:position" value="context()/../s:id"/>
+                  <xf:send submission="reject-submit"/>
+                </xf:action>
+              </xf:trigger>
+              <xf:trigger ref="s:status[.='filled']">
+                <xf:label>Put on XLOA</xf:label>
+                <xf:action ev:event="DOMActivate">
+                  <xf:setvalue ref="instance('leave-instance')/x:position" value="context()/../s:id"/>
+                  <xf:send submission="leave-submit"/>
+                </xf:action>
+              </xf:trigger>
+              <xf:trigger ref="s:status[.='filled']">
+                <xf:label>Unassign</xf:label>
+                <xf:action ev:event="DOMActivate">
+                  <xf:setvalue ref="instance('unassign-instance')/x:position" value="context()/../s:id"/>
+                  <xf:send submission="unassign-submit"/>
+                </xf:action>
+              </xf:trigger>
+              <xf:trigger>
+                <xf:label>Duplicate position</xf:label>
+                <xf:action ev:event="DOMActivate">
+                  <xf:insert 
+                    origin="instance('new-position-instance')"
+                    nodeset="." 
+                    position="after"/>
+                  <xf:setvalue ref="following-sibling::s:position[1]/s:id" 
+                    value="//s:id[not(//s:id &gt; .)] + 1"/>
+                  <xf:setvalue ref="following-sibling::s:position[1]/s:name"
+                    value="context()/s:name"/>
+                </xf:action>
+              </xf:trigger>
+              <xf:trigger>
+                <xf:label>Remove position</xf:label>
+                <xf:action ev:event="DOMActivate">
+                  <xf:message if="not(s:heldBy='')">If not already assigned to another position, the player will be placed in the "unassigned" category</xf:message>             
+                  <xf:insert 
+                    origin="s:heldBy[not(//s:unassigned/s:heldBy=.)][count(//s:heldBy[.=current()])=1]"
+                    context="//s:unassigned"
+                    />
+                  <xf:delete nodeset="."/>
+                </xf:action>
+              </xf:trigger>
+            </xf:group>
           </xf:repeat>
         </xf:repeat>
         <xf:group class="new-department" ref="instance('new-department-instance')">
+          <xf:label>Add new department</xf:label>
           <xf:input ref="s:name">
             <xf:label>Department name: </xf:label>
           </xf:input>
@@ -454,14 +473,6 @@ return
           </xf:trigger>
         </xf:group>
       </xf:group>
-      <xf:trigger>
-        <xf:label>{
-          if ($new)
-          then "Add ship"
-          else "Edit ship"
-        }</xf:label>
-        <xf:send ev:event="DOMActivate" submission="edit-ship-submit"/>
-      </xf:trigger>
     </xf:group>
     )
   )

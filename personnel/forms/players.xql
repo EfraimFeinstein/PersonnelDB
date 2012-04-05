@@ -187,6 +187,43 @@ return
       }</xf:label>
       <xf:send ev:event="DOMActivate" submission="player-submit"/>
     </xf:trigger>,
+    if ($new)
+    then ()
+    else ( 
+      <xf:trigger id="new-character-trigger">
+        <xf:label>Add new character</xf:label>
+        <xf:show ev:event="DOMActivate" dialog="new-character-dialog"/>
+      </xf:trigger>,
+      <xf:dialog id="new-character-dialog" class="new-character-editor" ref="instance('new-character-instance')">
+        <xf:input ref="p:name">
+          <xf:label>Name: </xf:label>
+        </xf:input>
+        <xf:input ref="p:boardName">
+          <xf:label>Board name: </xf:label>
+        </xf:input>
+        <xf:secret ref="p:password">
+          <xf:label>Board password: </xf:label>
+        </xf:secret>
+        <xf:input ref="p:email">
+          <xf:label>E-mail: </xf:label>
+        </xf:input>
+        <xf:trigger>
+          <xf:label>Add character</xf:label>
+          <xf:action ev:event="DOMActivate">
+            <xf:hide dialog="new-character-dialog"/>
+            <xf:send submission="add-character-submit"/>
+            <xf:setvalue ref="*" value="''"/>
+          </xf:action>
+        </xf:trigger>
+        <xf:trigger>
+          <xf:label>Cancel</xf:label>
+          <xf:action ev:event="DOMActivate">
+            <xf:hide dialog="new-character-dialog"/>
+            <xf:setvalue ref="*" value="''"/>
+          </xf:action>
+        </xf:trigger>
+      </xf:dialog>
+    ),
     if ($is-admin and not($new))
     then
       <xf:group class="access-rights-editor" ref="instance('access-rights-instance')">
@@ -202,123 +239,124 @@ return
       </xf:group>
     else (),
     <xf:group class="player-editor" ref="instance('player-instance')">
+      <xf:label>Player</xf:label>
       <div class="table">
         <div class="table-header table-row">
           <div class="table-cell">Board name</div>
           <div class="table-cell">Full name</div>
           <div class="table-cell">Contact email</div>
+          <div class="table-cell">Assigned to</div>
+          <div class="table-cell">Applied to</div>
           <div class="table-cell"></div>
         </div>
         <!--xf:output ref="p:id">
           <xf:label>Member number: </xf:label>
         </xf:output-->
-        <div class="table-row">
+        <div class="table-row main-player-row">
           <xf:input class="table-cell" ref="p:boardName"/>
           <xf:input class="table-cell" ref="p:name"/>
           <xf:input class="table-cell" ref="p:email"/>
+          <div class="table-cell"/>
+          <div class="table-cell"/>
+          <div class="table-cell"/>
         </div>
-      </div>
-    </xf:group>,
-    if ($new)
-    then ()
-    else (
-      <h2>My characters</h2>,
-      <xf:group class="new-character-editor" ref="instance('new-character-instance')">
-        <xf:label>Add a new character:</xf:label>
-        <xf:input ref="p:name">
-          <xf:label>Name: </xf:label>
-        </xf:input>
-        <xf:input ref="p:boardName">
-          <xf:label>Board name: </xf:label>
-        </xf:input>
-        <xf:secret ref="p:password">
-          <xf:label>Board password: </xf:label>
-        </xf:secret>
-        <xf:input ref="p:email">
-          <xf:label>E-mail: </xf:label>
-        </xf:input>
-        <xf:trigger>
-          <xf:label>Add character</xf:label>
-          <xf:send ev:event="DOMActivate" submission="add-character-submit"/>
-        </xf:trigger>
-      </xf:group>,
-      <xf:group class="character-editor" ref="instance('player-instance')">
-        <xf:repeat id="characters" nodeset="p:character">
-          <xf:output ref="p:id">
-            <xf:label>Member number: </xf:label>
-          </xf:output>
-          <xf:input ref="p:name">
-            <xf:label>Name:</xf:label>
-          </xf:input>
-          <xf:input ref="p:email">
-            <xf:label>E-mail address:</xf:label>
-          </xf:input>
-          {
-            element { if ($is-admin) then "xf:input" else "xf:output" }{
-              attribute ref { "p:boardName" },
-              <xf:label>Board name:</xf:label>
+        {
+        if ($new)
+        then ()
+        else (
+          <xf:repeat class="character-row-group table-row-group" id="characters" nodeset="p:character">
+            <!--xf:output ref="p:id">
+              <xf:label>Member number: </xf:label>
+            </xf:output-->
+            {
+              element { if ($is-admin) then "xf:input" else "xf:output" }{
+                attribute ref { "p:boardName" },
+                attribute class { "table-cell "} 
+              }
             }
-          }
-          <xf:group class="assignment" ref="p:history">
-            <xf:trigger ref=".[not(p:application)]|p:application[last()]/following-sibling::p:leave">
-              <xf:label>Apply for a position</xf:label>
-              <xf:show ev:event="DOMActivate" dialog="application-dialog"/>
-            </xf:trigger>
-            <xf:trigger ref="p:application[p:status='pending']">
-              <xf:label>Add an additional application</xf:label>
-              <xf:show ev:event="DOMActivate" dialog="application-dialog"/>
-            </xf:trigger>
-            <xf:trigger ref="p:application[p:status='approved'][last()][not(following-sibling::p:leave)]">
-              <xf:label>Apply for a transfer</xf:label>
-              <xf:show ev:event="DOMActivate" dialog="application-dialog"/>
-            </xf:trigger>
-            <xf:trigger ref="p:application[last()][p:status='approved'][not(following-sibling::p:leave)]">
-              <xf:label>Go on extended leave</xf:label>
-              <xf:action ev:event="DOMActivate">
-                <xf:setvalue ref="instance('leave-instance')/x:character" value="context()/ancestor::p:character/p:id"/>
-                <xf:send submission="leave-submit"/>
-              </xf:action>
-            </xf:trigger>
-          </xf:group>
-          <xf:dialog id="application-dialog">
-            <xf:select1 ref="instance('application-instance')/x:application/x:ship" appearance="compact">
-              <xf:label>Ship:</xf:label>
-              <xf:itemset nodeset="instance('open-positions-instance')//x:ship">
-                <xf:label ref="s:name"/>
-                <xf:value ref="s:name"/>
-              </xf:itemset>
-            </xf:select1>
-            <xf:select1 ref="instance('application-instance')/x:application/x:department" appearance="compact">
-              <xf:label>Department:</xf:label>
-              <xf:itemset nodeset="instance('open-positions-instance')//x:ship[s:name=instance('application-instance')/x:application/x:ship]/x:department">
-                <xf:label ref="s:name"/>
-                <xf:value ref="s:name"/>
-              </xf:itemset>
-            </xf:select1>
-            <xf:select1 ref="instance('application-instance')/x:application/x:position" appearance="compact">
-              <xf:label>Position:</xf:label>
-              <xf:itemset nodeset="instance('open-positions-instance')//x:ship[s:name=instance('application-instance')/x:application/x:ship]/x:department[s:name=instance('application-instance')/x:application/x:department]/x:position">
-                <xf:label ref="s:name"/>
-                <xf:value ref="s:id"/>
-              </xf:itemset>
-            </xf:select1>
-            <xf:trigger>
-              <xf:label>Apply</xf:label>
-              <xf:action ev:event="DOMActivate">
-                <xf:setvalue ref="instance('application-instance')/x:application/x:player" value="context()/ancestor::p:player/p:id"/>
-                <xf:setvalue ref="instance('application-instance')/x:application/x:character" value="context()/ancestor::p:player/p:character[index('characters')]/p:id"/>
-                <xf:setvalue ref="instance('application-instance')/x:application/x:character/@n" value="count(context()/ancestor::p:player/p:character[index('characters')]/preceding-sibling::p:character[p:id=instance('application-instance')/x:application/x:character]) + 1"/>
-                <xf:hide dialog="application-dialog"/>
-                <xf:send submission="application-submit"/>
-              </xf:action>
-            </xf:trigger>
-            <xf:trigger>
-              <xf:label>Cancel</xf:label>
-              <xf:hide ev:event="DOMActivate" dialog="application-dialog"/>
-            </xf:trigger>
-          </xf:dialog>
-        </xf:repeat>
-      </xf:group>
-    )
-    )
+            <xf:input class="table-cell" ref="p:name"/>
+            <xf:input class="table-cell" ref="p:email"/>
+            <div class="table-cell">
+              <xf:group ref="x:posting/x:status[.='posted']">
+                <xf:output value="concat(x:posting/x:ship,'-',x:posting/x:department,'-',x:posting/x:position)"/>
+              </xf:group>
+              <xf:group ref="x:posting/x:status[.='leave']">
+                On extended leave
+              </xf:group>
+              <xf:group ref="x:posting/x:status[.='unassigned']">
+                <xf:output value="x:posting/x:ship"/>
+              </xf:group>
+              <xf:group ref="x:posting/x:status[.='unposted']">
+                Not posted
+              </xf:group>
+            </div>
+            <div class="table-cell">
+              <xf:repeat class="application-list" nodeset="p:history/p:application[not(p:decisionDate)]">
+                <xf:output value="p:ship"/>
+              </xf:repeat>
+            </div>
+            <xf:group class="assignment table-cell" ref="p:history">
+              <xf:trigger ref=".[not(p:application)]|p:application[last()]/following-sibling::p:leave">
+                <xf:label>Apply for a position</xf:label>
+                <xf:show ev:event="DOMActivate" dialog="application-dialog"/>
+              </xf:trigger>
+              <xf:trigger ref="p:application[p:status='pending']">
+                <xf:label>Add an additional application</xf:label>
+                <xf:show ev:event="DOMActivate" dialog="application-dialog"/>
+              </xf:trigger>
+              <xf:trigger ref="p:application[p:status='approved'][last()][not(following-sibling::p:leave)]">
+                <xf:label>Apply for a transfer</xf:label>
+                <xf:show ev:event="DOMActivate" dialog="application-dialog"/>
+              </xf:trigger>
+              <xf:trigger ref="p:application[last()][p:status='approved'][not(following-sibling::p:leave)]">
+                <xf:label>Go on extended leave</xf:label>
+                <xf:action ev:event="DOMActivate">
+                  <xf:setvalue ref="instance('leave-instance')/x:character" value="context()/ancestor::p:character/p:id"/>
+                  <xf:send submission="leave-submit"/>
+                </xf:action>
+              </xf:trigger>
+            </xf:group>
+            <xf:dialog id="application-dialog">
+              <xf:select1 incremental="true" ref="instance('application-instance')/x:application/x:ship" appearance="compact">
+                <xf:label>Ship:</xf:label>
+                <xf:itemset nodeset="instance('open-positions-instance')//x:ship">
+                  <xf:label ref="s:name"/>
+                  <xf:value ref="s:name"/>
+                </xf:itemset>
+              </xf:select1>
+              <xf:select1 incremental="true" ref="instance('application-instance')/x:application/x:department[instance('application-instance')/x:application/x:ship != '']" appearance="compact">
+                <xf:label>Department:</xf:label>
+                <xf:itemset nodeset="instance('open-positions-instance')//x:ship[s:name=instance('application-instance')/x:application/x:ship]/x:department">
+                  <xf:label ref="s:name"/>
+                  <xf:value ref="s:name"/>
+                </xf:itemset>
+              </xf:select1>
+              <xf:select1 incremental="true" ref="instance('application-instance')/x:application/x:position[instance('application-instance')/x:application/x:department != '']" appearance="compact">
+                <xf:label>Position:</xf:label>
+                <xf:itemset nodeset="instance('open-positions-instance')//x:ship[s:name=instance('application-instance')/x:application/x:ship]/x:department[s:name=instance('application-instance')/x:application/x:department]/x:position">
+                  <xf:label ref="s:name"/>
+                  <xf:value ref="s:id"/>
+                </xf:itemset>
+              </xf:select1>
+              <xf:trigger incremental="true" ref="instance('application-instance')/x:application/x:position[. != '']">
+                <xf:label>Apply</xf:label>
+                <xf:action ev:event="DOMActivate">
+                  <xf:setvalue ref="instance('application-instance')/x:application/x:player" value="context()/ancestor::p:player/p:id"/>
+                  <xf:setvalue ref="instance('application-instance')/x:application/x:character" value="context()/ancestor::p:player/p:character[index('characters')]/p:id"/>
+                  <xf:setvalue ref="instance('application-instance')/x:application/x:character/@n" value="count(context()/ancestor::p:player/p:character[index('characters')]/preceding-sibling::p:character[p:id=instance('application-instance')/x:application/x:character]) + 1"/>
+                  <xf:hide dialog="application-dialog"/>
+                  <xf:send submission="application-submit"/>
+                  <xf:load resource="{request:get-uri()}?player-id={$player-id}"/>
+                </xf:action>
+              </xf:trigger>
+              <xf:trigger>
+                <xf:label>Cancel</xf:label>
+                <xf:hide ev:event="DOMActivate" dialog="application-dialog"/>
+              </xf:trigger>
+            </xf:dialog>
+          </xf:repeat>
+        )}
+      </div>
+    </xf:group> 
   )
+)
