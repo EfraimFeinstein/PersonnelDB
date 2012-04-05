@@ -105,9 +105,9 @@ declare function appl:approve(
   $character as xs:integer
   ) {
   (: was this a transfer application? if so, leave the previous ship:)
-  let $character := pl:get-player($character)//p:character[p:id=$character]
+  let $character := pl:get-player-by-id($character)//p:character[p:id=$character]
   let $old-position := $character/p:history/p:application[p:status="approved"][last()][following-sibling::p:leave]
-  where exists($current-position)
+  where exists($old-position)
   return
     let $old-ship := $old-position/p:ship
     let $old-position := $old-position/p:position
@@ -119,7 +119,7 @@ declare function appl:approve(
     <mail>
       <from>{$settings:from-email-address}</from>
       <reply-to/>
-      <to>{pl:get-player($character)/p:email/string()}</to>
+      <to>{pl:get-player-by-id($character)/p:email/string()}</to>
       <cc/>
       <bcc/>
       <subject>Star Trek Simulation Forum posting</subject>
