@@ -369,6 +369,10 @@ div#footer {
   border:1px solid black;
 }
 
+.application-list .xforms-repeat-item {
+  border:none;
+}
+
 .player-editor .main-player-row {
   background-color: LightGray;
 }

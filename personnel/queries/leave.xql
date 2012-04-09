@@ -21,12 +21,13 @@ declare namespace s="http://stsf.net/personnel/ships";
 declare namespace x="http://stsf.net/personnel/extended";
 
 let $leave := request:get-data()/x:leave
-let $character := $leave/x:character/number()
+let $char := $leave/x:character/number()
 let $character-position := 
-  collection($ship:ship-collection)//s:position[s:heldBy=$character]
+  collection($ship:ship-collection)//s:position[s:heldBy=$char]
 let $ship := ($leave/x:ship, $character-position/ancestor::s:ship/s:name)[1]/string()
 let $position := ($leave/x:position, $character-position/s:id)[1]/number()
 let $pos := ship:get-position($ship, $position)
+let $character := ($char, $pos/s:heldBy/number())[1]
 return
   if (not(prs:is-administrator() or ship:is-game-master($ship)))
   then prs:error(403, "Unauthorized")

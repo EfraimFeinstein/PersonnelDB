@@ -113,7 +113,10 @@ declare function pl:add-character(
   then
     let $boardName := $new-character/p:boardName/string()
     let $password := $new-character/p:password/string()
-    let $character-number := prs:auth-ipb($boardName,$password)
+    let $character-number := 
+      if (prs:is-administrator())
+      then mem:member-number-by-board-name($boardName)
+      else prs:auth-ipb($boardName,$password)
     return
       if (empty($character-number))
       then

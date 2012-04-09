@@ -35,7 +35,7 @@ declare function local:transform(
       element p:character {
         $node/@*,
         local:transform($node/node()),
-        let $posting := 
+        for $posting in 
           collection($ship:ship-collection)//(
             s:position[s:heldBy=$node/p:id]|
             s:unassigned/s:heldBy[.=$node/p:id]
@@ -48,8 +48,10 @@ declare function local:transform(
         let $status := 
           if ($unassigned)
           then "unassigned"
-          else if (exists($posting))
+          else if ($posting/s:status="filled")
           then "posted"
+          else if ($posting/s:status="pending")
+          then "applied"
           else if (exists($leave))
           then "leave"
           else "unposted"
@@ -61,6 +63,26 @@ declare function local:transform(
             element x:position { $position },
             element x:unassigned { $unassigned },
             element x:leave { exists($leave) }
+          },
+        for $application in $node/p:history/(p:application[p:status="cascade"]|p:leave)
+        let $applied-position := 
+          if ($application instance of element(p:leave))
+          then ()
+          else collection($ship:ship-collection)//
+            s:ship[s:name=$application/p:ship]//s:position[s:id=$application/p:position]
+        let $leave := $application/self::p:leave[empty(p:endDate)]
+        let $status := 
+          if (exists($leave))
+          then "leave"
+          else "applied"
+        return
+          element x:posting {
+            element x:status { $status },
+            element x:ship { $application/p:ship },
+            element x:department { $applied-position/ancestor::s:department/s:name/string() },
+            element x:position { $applied-position/s:name/string() },
+            element x:unassigned { false() },
+            element x:leave { $leave }
           }
       }
     case element() return 

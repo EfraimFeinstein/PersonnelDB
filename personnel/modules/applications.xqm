@@ -43,13 +43,15 @@ declare function local:template(
       return
         pl:get-player-by-id($character)/p:character[p:id=$character]/(p:name[.],p:boardName)[1]
       case element(m:gm)
-      return 
+      return "the ship's GMs" 
+      (: this call to ship:get-game-master-players() is broken, even though a call to the 
+       : same function elsewhere works...
         string-join(
-          for $gm in sm:get-group-members(concat($ship, " GM"))[not(.="admin")]
-          let $pl := pl:get-player(mem:board-name-by-member-name($gm))
+          for $gm in ship:get-game-master-players($ship)
           return 
-            concat($pl/s:name, " <", $pl/s:email, ">")
+            concat($gm/(p:name, p:boardName)[1], " &lt;", $gm/p:email, "&gt;")
          , " and ")
+         :)
       default return $node
     , " ")
 };

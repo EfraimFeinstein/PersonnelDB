@@ -12,6 +12,8 @@ import module namespace prs="http://stsf.net/xquery/personnel"
   at "xmldb:exist:///db/personnel/modules/personnel.xqm";
 import module namespace appl="http://stsf.net/xquery/applications"
   at "xmldb:exist:///db/personnel/modules/applications.xqm";
+import module namespace ship="http://stsf.net/xquery/ships"
+  at "xmldb:exist:///db/personnel/modules/ships.xqm";
 
 declare namespace s="http://stsf.net/personnel/ships";
 declare namespace x="http://stsf.net/personnel/extended";
