@@ -66,6 +66,15 @@ return
           </x:application>
         </x:applications>
       </xf:instance>
+      <xf:instance id="assignment-instance">
+        <x:assignment>
+          <x:ship/>
+          <x:department/>
+          <x:position/>
+          <x:player>{$player-id}</x:player>
+          <x:character/>
+        </x:assignment>
+      </xf:instance>
       <xf:instance id="leave-instance">
         <x:leave>
           <x:character/>
@@ -166,6 +175,21 @@ return
         >
         <xf:action ev:event="xforms-submit-done">
           <xf:message>Went on extended leave successfully.</xf:message>
+        </xf:action>
+        <xf:action ev:event="xforms-submit-error">
+          <xf:message>Error: 
+          <xf:output value="event('response-body')"/></xf:message>
+        </xf:action>
+      </xf:submission>
+      <xf:submission 
+        id="assignment-submit"
+        resource="{$settings:absolute-url-base}/queries/assign.xql"
+        method="post"
+        ref="instance('assignment-instance')"
+        replace="none"
+        >
+        <xf:action ev:event="xforms-submit-done">
+          <xf:message>Assigned successfully.</xf:message>
         </xf:action>
         <xf:action ev:event="xforms-submit-error">
           <xf:message>Error: 
@@ -327,6 +351,15 @@ return
                   <xf:send submission="leave-submit"/>
                 </xf:action>
               </xf:trigger>
+              {
+              if (prs:is-game-master())
+              then 
+                <xf:trigger ref=".[not(p:application)]|p:application[last()][p:status='rejected']|p:application[last()]/following-sibling::p:leave">
+                  <xf:label>Assign to a position</xf:label>
+                  <xf:show ev:event="DOMActivate" dialog="assignment-dialog"/>
+                </xf:trigger>
+              else ()
+              }
             </xf:group>
             <xf:dialog id="application-dialog">
               <xf:select1 incremental="true" ref="instance('application-instance')/x:application/x:ship" appearance="compact">
@@ -370,6 +403,47 @@ return
               <xf:trigger>
                 <xf:label>Cancel</xf:label>
                 <xf:hide ev:event="DOMActivate" dialog="application-dialog"/>
+              </xf:trigger>
+            </xf:dialog>
+            <xf:dialog id="assignment-dialog">
+              <xf:select1 incremental="true" ref="instance('assignment-instance')/x:ship" appearance="compact">
+                <xf:label>Ship:</xf:label>
+                <xf:itemset nodeset="instance('open-positions-instance')//x:ship">
+                  <xf:label ref="s:name"/>
+                  <xf:value ref="s:name"/>
+                </xf:itemset>
+              </xf:select1>
+              <xf:select1 incremental="true" ref="instance('assignment-instance')/x:department[instance('assignment-instance')/x:ship != '']" appearance="compact">
+                <xf:label>Department:</xf:label>
+                <xf:itemset nodeset="instance('open-positions-instance')//x:ship[s:name=instance('assignment-instance')/x:ship]/x:department">
+                  <xf:label ref="s:name"/>
+                  <xf:value ref="s:name"/>
+                </xf:itemset>
+              </xf:select1>
+              <xf:select1 incremental="true" ref="instance('assignment-instance')/x:position[instance('assignment-instance')/x:department != '']" appearance="compact">
+                <xf:label>Position:</xf:label>
+                <xf:itemset nodeset="instance('open-positions-instance')//x:ship[s:name=instance('assignment-instance')/x:ship]/x:department[s:name=instance('assignment-instance')/x:department]/x:position">
+                  <xf:label ref="s:name"/>
+                  <xf:value ref="s:id"/>
+                </xf:itemset>
+              </xf:select1>
+              <xf:trigger incremental="true" ref="instance('assignment-instance')/x:position[. != '']">
+                <xf:label>Apply</xf:label>
+                <xf:action ev:event="DOMActivate">
+                  <xf:setvalue 
+                    ref="instance('assignment-instance')/x:player" 
+                    value="instance('player-instance')/p:character[1]/p:id"/>
+                  <xf:setvalue 
+                    ref="instance('assignment-instance')/x:character" 
+                    value="instance('player-instance')/p:character[index('characters')]/p:id"/>
+                  <xf:hide dialog="assignment-dialog"/>
+                  <xf:send submission="assignment-submit"/>
+                  <xf:load resource="{request:get-uri()}?player-id={$player-id}"/>
+                </xf:action>
+              </xf:trigger>
+              <xf:trigger>
+                <xf:label>Cancel</xf:label>
+                <xf:hide ev:event="DOMActivate" dialog="assignment-dialog"/>
               </xf:trigger>
             </xf:dialog>
           </xf:repeat>
