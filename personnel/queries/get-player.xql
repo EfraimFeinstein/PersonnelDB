@@ -44,7 +44,7 @@ declare function local:transform(
         let $department := $posting/parent::s:department/s:name/string()
         let $position := $posting/s:name/string()
         let $leave := $node/p:history/p:leave[empty(p:endDate)]
-        let $unassigned := $posting instance of element(s:unassigned)
+        let $unassigned := $posting/parent::s:unassigned
         let $status := 
           if ($unassigned)
           then "unassigned"

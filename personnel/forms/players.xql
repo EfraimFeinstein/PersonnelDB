@@ -95,7 +95,7 @@ return
             if ($new)
             then
               <xf:load>
-                <xf:resource value="concat('{$settings:absolute-url-base}/forms/players?player-id=', instance('player-instance')/p:id)"/>
+                <xf:resource value="concat('{$settings:absolute-url-base}/forms/players?player-id=', instance('player-instance')/p:character[1]/p:id)"/>
               </xf:load>
             else ()
           }
