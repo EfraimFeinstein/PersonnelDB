@@ -96,7 +96,7 @@ return
       <xf:instance id="game-masters">
         <gms xmlns="">{
           for $gm in ship:get-game-master-players($ship)
-          return <gm>{$gm/(p:name, p:boardName)[1]/string()}</gm>
+          return <gm>{$gm/p:character[1]/(p:name, p:boardName)[1]/string()}</gm>
         }</gms>
       </xf:instance>
       <xf:submission 
@@ -132,7 +132,8 @@ return
         method="post"
         resource="{$settings:absolute-url-base}/queries/approve.xql"
         ref="instance('approve-instance')"
-        replace="none"
+        replace="instance"
+        instance="ship-instance"
         >
         <xf:action ev:event="xforms-submit-done">
           <xf:message>Posting approved successfully.</xf:message>
@@ -147,7 +148,8 @@ return
         method="post"
         resource="{$settings:absolute-url-base}/queries/reject.xql"
         ref="instance('reject-instance')"
-        replace="none"
+        replace="instance"
+        instance="ship-instance"
         >
         <xf:action ev:event="xforms-submit-done">
           <xf:message>Posting rejected successfully.</xf:message>
@@ -162,7 +164,8 @@ return
         method="post"
         resource="{$settings:absolute-url-base}/queries/unassign.xql"
         ref="instance('unassign-instance')"
-        replace="none"
+        replace="instance"
+        instance="ship-instance"
         >
         <xf:action ev:event="xforms-submit-done">
           <xf:message>Posting unassigned successfully.</xf:message>
@@ -177,7 +180,8 @@ return
         method="post"
         resource="{$settings:absolute-url-base}/queries/leave.xql"
         ref="instance('leave-instance')"
-        replace="none"
+        replace="instance"
+        instance="ship-instance"
         >
         <xf:action ev:event="xforms-submit-done">
           <xf:message>Extended leave granted successfully.</xf:message>
@@ -192,7 +196,8 @@ return
         method="post"
         resource="{$settings:absolute-url-base}/queries/reassign.xql"
         ref="instance('reassign-instance')"
-        replace="none"
+        replace="instance"
+        instance="ship-instance"
         >
         <xf:action ev:event="xforms-submit-done">
           <xf:message>Character reassigned successfully.</xf:message>

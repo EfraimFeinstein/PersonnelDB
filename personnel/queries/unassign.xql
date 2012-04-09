@@ -5,6 +5,8 @@ xquery version "3.0";
  :  <x:ship>{$name}</x:ship>
  :  <x:position>{$id}</x:position>
  : </x:unassign>
+ : Return the updated ship structure
+ :
  : Copyright 2012 Efraim Feinstein <efraim.feinstein@gmail.com>
  : Licensed under the GNU LGPL 3+
  :)
@@ -27,4 +29,4 @@ return
   then prs:error(400, "Position is not filled")
   else 
     let $null := ship:unassign($ship, $position)
-    return () 
+    return ship:get-ship($ship) 

@@ -5,6 +5,7 @@ xquery version "3.0";
  :  <x:ship>{$name}</x:ship>
  :  <x:position>{$id}</x:position>
  : </x:approve>
+ : Return the updated s:ship
  : Copyright 2012 Efraim Feinstein <efraim.feinstein@gmail.com>
  : Licensed under the GNU LGPL 3+
  :)
@@ -27,4 +28,7 @@ return
   then prs:error(403, "Unauthorized")
   else if ($pos/s:status != "pending")
   then prs:error(400, "Position is not pending")
-  else appl:approve($ship, $position, $pos/s:heldBy/number()) 
+  else 
+    let $null := appl:approve($ship, $position, $pos/s:heldBy/number())
+    return ship:get-ship($ship)
+  

@@ -7,6 +7,8 @@ xquery version "3.0";
  :  <x:position>{$id}</x:position>?
  :  <x:character>{$id}</x:character>
  : </x:leave>
+ : Return the updated s:ship structure
+ :
  : Copyright 2012 Efraim Feinstein <efraim.feinstein@gmail.com>
  : Licensed under the GNU LGPL 3+
  :)
@@ -37,4 +39,4 @@ return
   then prs:error(400, "Position is not filled")
   else 
     let $null := appl:leave($ship, $position, $character)
-    return () 
+    return ship:get-ship($ship) 
