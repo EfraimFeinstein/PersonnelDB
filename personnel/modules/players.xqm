@@ -25,7 +25,7 @@ declare function pl:login-player(
   let $member-number := 
     xs:integer(
       collection($pl:player-collection)//
-        p:boardName[.=$boardName]/ancestor::p:player/p:id
+        p:character[p:boardName=$boardName]/p:id
     )
   let $did-login :=
     mem:login-member($member-number)
@@ -46,7 +46,7 @@ declare function pl:logout-player(
 declare function pl:get-player(
   $name as xs:string
   ) as element(p:player)? {
-  (collection($pl:player-collection)//p:boardName[.=$name]/ancestor::p:player)[1]
+  (collection($pl:player-collection)//p:player[p:character/p:boardName=$name])[1]
 };
 
 declare function pl:get-player-by-id(
@@ -61,7 +61,12 @@ declare function pl:player-resource(
   ) as xs:string? {
   typeswitch ($player-id)
   case xs:integer 
-  return concat(string($player-id), ".xml")
+  return 
+    let $primary-id := pl:get-player-by-id($player-id)
+    return
+      if ($primary-id)
+      then util:document-name($primary-id)
+      else concat(string($player-id), ".xml")
   default
   return util:document-name(pl:get-player($player-id))
 };
@@ -70,8 +75,8 @@ declare function pl:can-edit-player(
   $new-player as element(p:player),
   $member-number as xs:integer?
   ) as xs:boolean {
-  let $member-number := ($member-number, xs:integer($new-player/p:id))[1]
-  let $player-xml := xs:anyURI(concat(string($pl:player-collection), "/", string($member-number), ".xml"))
+  let $member-number := ($member-number, xs:integer($new-player/p:character[1]/p:id))[1]
+  let $player-xml := xs:anyURI(concat(string($pl:player-collection), "/", pl:player-resource($member-number)))
   let $current-user := xmldb:get-current-user()
   return
     if (doc-available($player-xml))
@@ -87,11 +92,13 @@ declare function pl:can-edit-player(
         (
           let $old-player := doc($player-xml)/p:player
           return
-            $new-player/p:id = $old-player/p:id and
-            $new-player/p:boardName = $old-player/p:boardName and
             count($old-player/p:character) = count($new-player/p:character) and
             (every $new-character in $new-player/p:character 
-            satisfies $new-character/p:id=$old-player/p:character/p:id) 
+            satisfies (
+              ($new-character/p:id=$old-player/p:character/p:id) and
+              ($new-character/p:boardName = $old-player/p:character/p:boardName)
+              )
+            )
         ) or
         sm:get-group-members("administrator")=$current-user or
         $current-user="admin" 
@@ -100,7 +107,7 @@ declare function pl:can-edit-player(
       (: can create a player :)
       sm:has-access(xs:anyURI($pl:player-collection), "w") and
       sm:get-group-members("administrator")=$current-user and
-      not($new-player/p:id = collection($pl:player-collection)//p:id) 
+      not($new-player/p:character/p:id = collection($pl:player-collection)//p:id) 
 };
 
 (:~ add a character to the given player :)
@@ -134,7 +141,7 @@ declare function pl:add-character(
             element p:history { () } 
           }
         return (
-          update insert $char into collection($pl:player-collection)//p:player[p:id=$player-id], 
+          update insert $char into pl:get-player-by-id($player-id), 
           $char
         )
   else error(xs:QName("error:ACCESS"), "A non-administrator player has to add his/her own characters")
@@ -151,7 +158,7 @@ declare function pl:edit-player(
   then
     error(xs:QName("error:VALIDATION"), "Could not validate the player object")
   else
-    let $member-number := xs:integer($player/p:id)
+    let $member-number := xs:integer($player/p:character[1]/p:id)
     let $player-xml := pl:player-resource($member-number)
     let $member-name := mem:member-name($member-number) 
     let $player-resource :=
@@ -190,7 +197,7 @@ declare function pl:set-access-level(
   if (prs:is-administrator())
   then 
     let $player := pl:get-player($player-name)
-    let $member-name := mem:member-name($player/p:id)
+    let $member-name := mem:member-name($player/p:character[1]/p:id)
     let $new-access-levels := distinct-values(($access-levels, "player"))
     return
       system:as-user("admin", $settings:admin-password, (

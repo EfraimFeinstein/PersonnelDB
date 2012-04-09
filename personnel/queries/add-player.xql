@@ -40,10 +40,13 @@ else
   let $member-number := mem:member-number-by-board-name($data/p:boardName)
   let $player := 
     element p:player {
-      element p:id { $member-number },
-      ($data/p:name, element p:name { $data/p:boardName/string() })[1],
-      $data/p:boardName,
-      $data/p:email
+      element p:character {
+        element p:id { $member-number },
+        ($data/p:name, element p:name { $data/p:boardName/string() })[1],
+        $data/p:boardName,
+        $data/p:email,
+        element p:history { () }
+      }
     }
   return 
     if ($member-number)

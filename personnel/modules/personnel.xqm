@@ -93,10 +93,13 @@ declare function prs:setup(
       let $edited :=
         pl:edit-player(
           element p:player {
-            element p:id { $settings:admin-numbers[$n] },
-            element p:name { $admin-user },
-            element p:boardName { $admin-user },
-            element p:email { $settings:admin-emails[$n] }
+            element p:character {
+              element p:id { $settings:admin-numbers[$n] },
+              element p:name { $admin-user },
+              element p:boardName { $admin-user },
+              element p:email { $settings:admin-emails[$n] },
+              element p:history {}
+            }
           }
         )
       let $access-level := 

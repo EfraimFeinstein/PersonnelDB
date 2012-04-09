@@ -98,9 +98,9 @@ return
   then 
     prs:error(403, "Not authenticated")
   else
-    let $requested-player := collection($pl:player-collection)//p:id[.=$player-id]/ancestor::p:player
+    let $requested-player := pl:get-player-by-id($player-id)
     return
-      if (not(prs:is-game-master() or $requested-player/p:id=$authenticated-member))
+      if (not(prs:is-game-master() or $requested-player/descendant::p:id=$authenticated-member))
       then
         prs:error(403, "Only a game master or administrator can get player information for anyone other than themselves.")
       else 

@@ -208,22 +208,23 @@ return
           <xf:input ref="p:email">
             <xf:label>E-mail: </xf:label>
           </xf:input>
+        
+          <xf:trigger>
+            <xf:label>Add character</xf:label>
+            <xf:action ev:event="DOMActivate">
+              <xf:hide dialog="new-character-dialog"/>
+              <xf:send submission="add-character-submit"/>
+              <xf:setvalue ref="*" value="''"/>
+            </xf:action>
+          </xf:trigger>
+          <xf:trigger>
+            <xf:label>Cancel</xf:label>
+            <xf:action ev:event="DOMActivate">
+              <xf:hide dialog="new-character-dialog"/>
+              <xf:setvalue ref="*" value="''"/>
+            </xf:action>
+          </xf:trigger>
         </xf:group>
-        <xf:trigger>
-          <xf:label>Add character</xf:label>
-          <xf:action ev:event="DOMActivate">
-            <xf:hide dialog="new-character-dialog"/>
-            <xf:send submission="add-character-submit"/>
-            <!--xf:setvalue ref="*" value="''"/-->
-          </xf:action>
-        </xf:trigger>
-        <xf:trigger>
-          <xf:label>Cancel</xf:label>
-          <xf:action ev:event="DOMActivate">
-            <xf:hide dialog="new-character-dialog"/>
-            <xf:setvalue ref="*" value="''"/>
-          </xf:action>
-        </xf:trigger>
       </xf:dialog>
     ),
     if ($is-admin and not($new))
@@ -263,17 +264,17 @@ return
         <!--xf:output ref="p:id">
           <xf:label>Member number: </xf:label>
         </xf:output-->
-        <div class="table-row main-player-row">
-          <xf:input class="table-cell" ref="p:boardName"/>
-          <xf:input class="table-cell" ref="p:name"/>
-          <xf:input class="table-cell" ref="p:email"/>
-          <div class="table-cell"/>
-          <div class="table-cell"/>
-          <div class="table-cell"/>
-        </div>
         {
         if ($new)
-        then ()
+        then 
+          <div class="table-row main-player-row">
+            <xf:input class="table-cell" ref="p:boardName"/>
+            <xf:input class="table-cell" ref="p:name"/>
+            <xf:input class="table-cell" ref="p:email"/>
+            <div class="table-cell"/>
+            <div class="table-cell"/>
+            <div class="table-cell"/>
+          </div>
         else (
           <xf:repeat class="character-row-group table-row-group" id="characters" nodeset="p:character">
             <!--xf:output ref="p:id">
@@ -354,7 +355,7 @@ return
                 <xf:action ev:event="DOMActivate">
                   <xf:setvalue 
                     ref="instance('application-instance')/x:application/x:player" 
-                    value="instance('player-instance')/p:id"/>
+                    value="instance('player-instance')/p:character[1]/p:id"/>
                   <xf:setvalue 
                     ref="instance('application-instance')/x:application/x:character" 
                     value="instance('player-instance')/p:character[index('characters')]/p:id"/>

@@ -30,7 +30,7 @@ declare namespace error="http://stsf.net/error";
 let $data := request:get-data()
 let $user := $data//user/string()
 let $password := $data//password/string()
-let $all-players := collection("/db/personnel/data/players")
+let $all-players := collection($pl:player-collection)
 return
   if (not($user) or not($password))
   then

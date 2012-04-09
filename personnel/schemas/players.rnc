@@ -35,11 +35,9 @@ Character = element character {
   }	
 }
 
+# a player is a collection of characters and can be identified by
+# any of the subordinate characters
 Player = element player { 
-  element id { xsd:integer },
-  element name { text },
-  element boardName { text },
-  Email,
   Character*
 }
 

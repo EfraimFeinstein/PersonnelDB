@@ -121,7 +121,7 @@ declare function appl:approve(
     <mail>
       <from>{$settings:from-email-address}</from>
       <reply-to/>
-      <to>{pl:get-player-by-id($character)/p:email/string()}</to>
+      <to>{pl:get-player-by-id($character)/p:character[p:id=$character]/p:email/string()}</to>
       <cc/>
       <bcc/>
       <subject>Star Trek Simulation Forum posting</subject>
