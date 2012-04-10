@@ -101,7 +101,9 @@ declare function ship:edit-ship(
             sm:chown($ship-resource, "admin"),
             sm:chgrp($ship-resource, $ship-gm-group),
             sm:chmod($ship-resource, "rw-rw-r--"),
-            sm:add-group-ace($ship-resource, "administrator", true(), "w")
+            sm:add-group-ace($ship-resource, "administrator", true(), "w"),
+            (: the player group needs to be able to make applications :)
+            sm:add-group-ace($ship-resource, "player", true(), "w") 
           )
         )
         else 

@@ -428,7 +428,7 @@ return
                 </xf:itemset>
               </xf:select1>
               <xf:trigger incremental="true" ref="instance('assignment-instance')/x:position[. != '']">
-                <xf:label>Apply</xf:label>
+                <xf:label>Assign</xf:label>
                 <xf:action ev:event="DOMActivate">
                   <xf:setvalue 
                     ref="instance('assignment-instance')/x:player" 

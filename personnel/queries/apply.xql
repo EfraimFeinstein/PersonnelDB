@@ -35,12 +35,11 @@ for $application in $applications
 let $player := pl:get-player-by-id($application/x:player)
 let $character := $player/p:character
   [p:id=$application/x:character]
-  [($application/x:character/@n/number(), 1)[1]]
 let $ship := $application/x:ship/string()
 let $can-apply := 
   prs:is-administrator() or
   ship:is-game-master($ship) or 
-  pl:get-player-by-id($member-number)=$application/x:player
+  pl:get-player-by-id($member-number) is $player
 let $position := $application/x:position/number()
 return
   if (not($can-apply))
