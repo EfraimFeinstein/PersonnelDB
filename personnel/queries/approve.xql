@@ -30,5 +30,5 @@ return
   then prs:error(400, "Position is not pending")
   else 
     let $null := appl:approve($ship, $position, $pos/s:heldBy/number())
-    return ship:get-ship($ship)
+    return ship:transform-extended(ship:get-ship($ship))
   

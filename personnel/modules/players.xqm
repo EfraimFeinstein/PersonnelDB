@@ -13,10 +13,80 @@ import module namespace prs="http://stsf.net/xquery/personnel"
   at "personnel.xqm";
 
 declare namespace p="http://stsf.net/personnel/players";
+declare namespace s="http://stsf.net/personnel/ships";
+declare namespace x="http://stsf.net/personnel/extended";
 declare namespace error="http://stsf.net/errors";
 
 declare variable $pl:player-collection := 
   concat($prs:data-collection, "/players");
+
+(: add player posting information to a player structure :)
+declare function pl:transform-extended(
+  $nodes as node()*
+  ) as node()* {
+  for $node in $nodes
+  return
+    typeswitch($node)
+    case element(p:character) return
+      element p:character {
+        $node/@*,
+        local:transform($node/node()),
+        for $posting in 
+          collection($ship:ship-collection)//(
+            s:position[s:heldBy=$node/p:id]|
+            s:unassigned/s:heldBy[.=$node/p:id]
+            )
+        let $ship := $posting/ancestor::s:ship/s:name/string()
+        let $department := $posting/parent::s:department/s:name/string()
+        let $position := $posting/s:name/string()
+        let $leave := $node/p:history/p:leave[empty(p:endDate)]
+        let $unassigned := $posting/parent::s:unassigned
+        let $status := 
+          if ($unassigned)
+          then "unassigned"
+          else if ($posting/s:status="filled")
+          then "posted"
+          else if ($posting/s:status="pending")
+          then "applied"
+          else if (exists($leave))
+          then "leave"
+          else "unposted"
+        return
+          element x:posting {
+            element x:status { $status },
+            element x:ship { $ship },
+            element x:department { $department },
+            element x:position { $position },
+            element x:unassigned { $unassigned },
+            element x:leave { exists($leave) }
+          },
+        for $application in $node/p:history/(p:application[p:status="cascade"]|p:leave)
+        let $applied-position := 
+          if ($application instance of element(p:leave))
+          then ()
+          else collection($ship:ship-collection)//
+            s:ship[s:name=$application/p:ship]//s:position[s:id=$application/p:position]
+        let $leave := $application/self::p:leave[empty(p:endDate)]
+        let $status := 
+          if (exists($leave))
+          then "leave"
+          else "applied"
+        return
+          element x:posting {
+            element x:status { $status },
+            element x:ship { $application/p:ship },
+            element x:department { $applied-position/ancestor::s:department/s:name/string() },
+            element x:position { $applied-position/s:name/string() },
+            element x:unassigned { false() },
+            element x:leave { $leave }
+          }
+      }
+    case element() return 
+      element {name($node)}{ $node/@*, pl:transform-extended($node/node()) }
+    case document-node() return pl:transform-extended($node/node())
+    default return $node
+};
+
 
 declare function pl:login-player(
   $boardName as xs:string
@@ -272,7 +342,7 @@ declare function pl:reject(
       current-dateTime() 
     } into $app,
     update value 
-      $app/p:history/p:application[p:status="cascade"][1]/p:status
+      $app/following-sibling::p:application[p:status="cascade"][1]/p:status
       with "pending"
   )
 };

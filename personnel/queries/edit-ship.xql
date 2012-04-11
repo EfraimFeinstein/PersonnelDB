@@ -22,4 +22,4 @@ declare namespace error="http://stsf.net/error";
 let $data := request:get-data()/s:ship 
 let $success := ship:edit-ship(prs:remove-extensions($data))
 where $success
-return $data
+return ship:transform-extended($data)

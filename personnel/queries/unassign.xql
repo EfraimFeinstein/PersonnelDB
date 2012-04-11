@@ -29,4 +29,4 @@ return
   then prs:error(400, "Position is not filled")
   else 
     let $null := ship:unassign($ship, $position)
-    return ship:get-ship($ship) 
+    return ship:transform-extended(ship:get-ship($ship)) 

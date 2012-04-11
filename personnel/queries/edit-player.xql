@@ -21,4 +21,4 @@ declare namespace error="http://stsf.net/error";
 
 let $data := request:get-data()/p:player 
 let $success := pl:edit-player(prs:remove-extensions($data))
-return $data
+return pl:transform-extended($data)

@@ -16,6 +16,7 @@ import module namespace prs="http://stsf.net/xquery/personnel"
 
 declare namespace p="http://stsf.net/personnel/players";
 declare namespace s="http://stsf.net/personnel/ships";
+declare namespace x="http://stsf.net/personnel/extended";
 declare namespace error="http://stsf.net/errors";
 
 declare variable $ship:ship-collection := 
@@ -274,4 +275,31 @@ declare function ship:reassign(
     update delete $heldby,
     true()
   )
+};
+
+(: add extended information to the ship structure :)
+declare function ship:transform-extended(
+  $node as node()*
+  ) as node()* {
+  for $n in $node
+  return
+    typeswitch($n)
+    case element(s:heldBy)
+    return 
+      element s:heldBy {
+        $n/@*,
+        attribute x:boardName { 
+          if ($n/number())
+          then collection($pl:player-collection)//p:character[p:id=$n/number()]/p:boardName/string()
+          else () 
+        },
+        ship:transform-extended($n/node())
+      }
+    case element() return 
+      element {name($n)}{
+        $n/@*,
+        ship:transform-extended($n/node())
+      }
+    case document-node() return ship:transform-extended($n/node())
+    default return $n
 };

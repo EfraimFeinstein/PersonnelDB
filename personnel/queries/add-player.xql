@@ -52,6 +52,6 @@ else
     if ($member-number)
     then
       let $success := pl:edit-player($player)
-      return $player
+      return pl:transform-extended($player)
     else
       prs:error(400, "Could not find the player with the given board name. Refresh the database?")

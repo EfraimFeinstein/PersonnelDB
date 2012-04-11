@@ -17,6 +17,8 @@ import module namespace appl="http://stsf.net/xquery/applications"
   at "xmldb:exist:///db/personnel/modules/applications.xqm";
 import module namespace prs="http://stsf.net/xquery/personnel"
   at "xmldb:exist:///db/personnel/modules/personnel.xqm";
+import module namespace pl="http://stsf.net/xquery/players"
+  at "xmldb:exist:///db/personnel/modules/players.xqm";
 import module namespace ship="http://stsf.net/xquery/ships"
   at "xmldb:exist:///db/personnel/modules/ships.xqm";
 
@@ -42,5 +44,5 @@ return
     let $null := appl:leave($ship, $position, $character)
     return 
       if ($leave/@return = "player")
-      then pl:get-player-by-id($character) 
-      else ship:get-ship($ship) 
+      then pl:transform-extended(pl:get-player-by-id($character)) 
+      else ship:transform-extended(ship:get-ship($ship)) 

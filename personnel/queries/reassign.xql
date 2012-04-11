@@ -33,4 +33,4 @@ return
   then prs:error(400, "Position is filled or pending")
   else 
     let $null := ship:reassign($ship, $position, $character)
-    return ship:get-ship($ship) 
+    return ship:transform-extended(ship:get-ship($ship)) 

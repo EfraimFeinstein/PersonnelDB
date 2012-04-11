@@ -38,5 +38,5 @@ return
     prs:error(400, "player-id parameter is required or you are not authenticated")
   else 
     let $ch := pl:add-character($player-id, $new-character)
-    return pl:get-player-by-id($player-id)
+    return pl:transform-extended(pl:get-player-by-id($player-id))
     

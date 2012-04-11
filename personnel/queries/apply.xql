@@ -52,4 +52,4 @@ return
   then prs:error(400, "Requested position is not open")
   else 
     let $ap := appl:apply($ship, $position, $application/x:character)
-    return pl:get-player-by-id($application/x:character)
+    return pl:transform-extended(pl:get-player-by-id($application/x:character))

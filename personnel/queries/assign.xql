@@ -45,4 +45,4 @@ return
   else 
     let $application := appl:apply($ship, $position, $assignment/x:character)
     let $approval := appl:approve($ship, $position, $assignment/x:character)
-    return pl:get-player-by-id($assignment/x:character)
+    return pl:transform-extended(pl:get-player-by-id($assignment/x:character))
