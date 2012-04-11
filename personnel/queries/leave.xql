@@ -2,12 +2,13 @@ xquery version "3.0";
 (: put a character on leave. If only a character is given,
  : we attempt to find what position he holds
  : POST the following:
- : <x:leave>
+ : <x:leave return="player"?>
  :  <x:ship>{$name}</x:ship>?
  :  <x:position>{$id}</x:position>?
  :  <x:character>{$id}</x:character>
  : </x:leave>
- : Return the updated s:ship structure
+ : Return the updated s:ship structure, or player structure if
+ :  return="player" is specified
  :
  : Copyright 2012 Efraim Feinstein <efraim.feinstein@gmail.com>
  : Licensed under the GNU LGPL 3+
@@ -39,4 +40,7 @@ return
   then prs:error(400, "Position is not filled")
   else 
     let $null := appl:leave($ship, $position, $character)
-    return ship:get-ship($ship) 
+    return 
+      if ($leave/@return = "player")
+      then pl:get-player-by-id($character) 
+      else ship:get-ship($ship) 

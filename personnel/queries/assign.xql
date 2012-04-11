@@ -6,6 +6,8 @@ xquery version "3.0";
  :    <x:position>{id#}</x:position>
  :    <x:character>{id#}</x:character>
  :  </x:assignment> 
+ : Return the player instance
+ :
  : Copyright 2012 Efraim Feinstein <efraim.feinstein@gmail.com>
  : Licensed under the GNU LGPL 3+
  :)
@@ -43,4 +45,4 @@ return
   else 
     let $application := appl:apply($ship, $position, $assignment/x:character)
     let $approval := appl:approve($ship, $position, $assignment/x:character)
-    return ()
+    return pl:get-player-by-id($assignment/x:character)

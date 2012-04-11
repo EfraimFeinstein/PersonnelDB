@@ -14,7 +14,7 @@ xquery version "3.0";
  : 
  : Method: POST
  : Return:
- :  200 OK [and the new character element]
+ :  200 OK and the rewritten player element
  :  400 Error
  :
  : Copyright 2012 Efraim Feinstein <efraim.feinstein@gmail.com>
@@ -37,4 +37,6 @@ return
   then 
     prs:error(400, "player-id parameter is required or you are not authenticated")
   else 
-    pl:add-character($player-id, $new-character)
+    let $ch := pl:add-character($player-id, $new-character)
+    return pl:get-player-by-id($player-id)
+    

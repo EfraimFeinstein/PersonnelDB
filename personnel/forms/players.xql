@@ -76,7 +76,7 @@ return
         </x:assignment>
       </xf:instance>
       <xf:instance id="leave-instance">
-        <x:leave>
+        <x:leave return="player">
           <x:character/>
         </x:leave>
       </xf:instance> 
@@ -120,16 +120,10 @@ return
         method="post"
         ref="instance('new-character-instance')"
         replace="instance"
-        instance="new-character-result"
+        instance="player-instance"
         >
         <xf:action ev:event="xforms-submit-done">
           <xf:message>Character added successfully.</xf:message>
-          <xf:setvalue ref="instance('new-character-instance')/*" value=""/>
-          <xf:insert 
-            nodeset="instance('player-instance')/*"
-            at="last()"
-            origin="instance('new-character-result')"
-            />
         </xf:action>
         <xf:action ev:event="xforms-submit-error">
           <xf:message>Error: 
@@ -156,7 +150,8 @@ return
         resource="{$settings:absolute-url-base}/queries/apply.xql"
         method="post"
         ref="instance('application-instance')"
-        replace="none"
+        replace="instance"
+        instance="player-instance"
         >
         <xf:action ev:event="xforms-submit-done">
           <xf:message>Applied successfully.</xf:message>
@@ -171,7 +166,8 @@ return
         resource="{$settings:absolute-url-base}/queries/leave.xql"
         method="post"
         ref="instance('leave-instance')"
-        replace="none"
+        replace="instance"
+        instance="player-instance"
         >
         <xf:action ev:event="xforms-submit-done">
           <xf:message>Went on extended leave successfully.</xf:message>
@@ -186,7 +182,8 @@ return
         resource="{$settings:absolute-url-base}/queries/assign.xql"
         method="post"
         ref="instance('assignment-instance')"
-        replace="none"
+        replace="instance"
+        instance="player-instance"
         >
         <xf:action ev:event="xforms-submit-done">
           <xf:message>Assigned successfully.</xf:message>
@@ -397,7 +394,6 @@ return
                     value="count(instance('player-instance')/p:character[index('characters')]/preceding-sibling::p:character[p:id=instance('application-instance')/x:application/x:character]) + 1"/>
                   <xf:hide dialog="application-dialog"/>
                   <xf:send submission="application-submit"/>
-                  <xf:load resource="{request:get-uri()}?player-id={$player-id}"/>
                 </xf:action>
               </xf:trigger>
               <xf:trigger>
@@ -438,7 +434,6 @@ return
                     value="instance('player-instance')/p:character[index('characters')]/p:id"/>
                   <xf:hide dialog="assignment-dialog"/>
                   <xf:send submission="assignment-submit"/>
-                  <xf:load resource="{request:get-uri()}?player-id={$player-id}"/>
                 </xf:action>
               </xf:trigger>
               <xf:trigger>

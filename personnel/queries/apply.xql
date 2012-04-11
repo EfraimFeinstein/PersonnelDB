@@ -12,6 +12,8 @@ xquery version "3.0";
  : for a player's character to apply to a given position 
  : (the n on the x:character should be 1 unless the same character
  :  is listed more than once)
+ : Return the updated player element
+ :
  : Copyright 2012 Efraim Feinstein <efraim.feinstein@gmail.com>
  : Licensed under the GNU LGPL 3+
  :)
@@ -48,4 +50,6 @@ return
   then prs:error(400, "Character does not exist")
   else if (not(ship:is-open-position($ship, $position)))
   then prs:error(400, "Requested position is not open")
-  else appl:apply($ship, $position, $application/x:character)
+  else 
+    let $ap := appl:apply($ship, $position, $application/x:character)
+    return pl:get-player-by-id($application/x:character)
