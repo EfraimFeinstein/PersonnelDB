@@ -30,7 +30,7 @@ declare function pl:transform-extended(
     case element(p:character) return
       element p:character {
         $node/@*,
-        local:transform($node/node()),
+        pl:transform-extended($node/node()),
         for $posting in 
           collection($ship:ship-collection)//(
             s:position[s:heldBy=$node/p:id]|
